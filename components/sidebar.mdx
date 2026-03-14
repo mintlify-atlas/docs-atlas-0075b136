@@ -1,0 +1,638 @@
+---
+title: Sidebar Navigation
+description: Build responsive sidebar navigation with AppSidebar, NavGroup, TeamSwitcher, and collapsible layouts
+icon: bars
+---
+
+Shadcn Admin provides a flexible sidebar navigation system with support for collapsible navigation, team switching, nested menus, and responsive layouts.
+
+## Overview
+
+The sidebar system is located in `src/components/layout/` and includes:
+
+- **AppSidebar** - Main sidebar container
+- **NavGroup** - Grouped navigation items
+- **TeamSwitcher** - Multi-team dropdown selector
+- **NavUser** - User profile section
+- **Sidebar Primitives** - Base components from `src/components/ui/sidebar.tsx`
+
+## AppSidebar
+
+The main sidebar component that wraps all navigation elements.
+
+### Structure
+
+From `src/components/layout/app-sidebar.tsx:15-37`:
+
+```tsx
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarRail,
+} from '@/components/ui/sidebar'
+import { AppSidebar } from './app-sidebar'
+import { NavGroup } from './nav-group'
+import { NavUser } from './nav-user'
+import { TeamSwitcher } from './team-switcher'
+import { sidebarData } from './data/sidebar-data'
+
+export function AppSidebar() {
+  const { collapsible, variant } = useLayout()
+  
+  return (
+    <Sidebar collapsible={collapsible} variant={variant}>
+      <SidebarHeader>
+        <TeamSwitcher teams={sidebarData.teams} />
+      </SidebarHeader>
+      
+      <SidebarContent>
+        {sidebarData.navGroups.map((props) => (
+          <NavGroup key={props.title} {...props} />
+        ))}
+      </SidebarContent>
+      
+      <SidebarFooter>
+        <NavUser user={sidebarData.user} />
+      </SidebarFooter>
+      
+      <SidebarRail />
+    </Sidebar>
+  )
+}
+```
+
+### Sidebar Variants
+
+The sidebar supports three variants:
+
+- **sidebar** - Standard sidebar (default)
+- **floating** - Floating sidebar with backdrop
+- **inset** - Inset sidebar with padding
+
+```tsx
+import { Sidebar } from '@/components/ui/sidebar'
+
+<Sidebar variant="floating" collapsible="icon">
+  {/* Content */}
+</Sidebar>
+```
+
+### Collapsible Modes
+
+- **offcanvas** - Hide completely on mobile
+- **icon** - Collapse to icon-only view
+- **none** - No collapse behavior
+
+## NavGroup
+
+Organizes navigation items into labeled groups with support for nested items.
+
+### Type Definitions
+
+From `src/components/layout/types.ts:15-36`:
+
+```tsx
+type BaseNavItem = {
+  title: string
+  badge?: string
+  icon?: React.ElementType
+}
+
+type NavLink = BaseNavItem & {
+  url: LinkProps['to'] | (string & {})
+  items?: never
+}
+
+type NavCollapsible = BaseNavItem & {
+  items: (BaseNavItem & { url: LinkProps['to'] | (string & {}) })[]
+  url?: never
+}
+
+type NavItem = NavCollapsible | NavLink
+
+type NavGroup = {
+  title: string
+  items: NavItem[]
+}
+```
+
+### Basic Usage
+
+```tsx
+import { NavGroup } from '@/components/layout/nav-group'
+import { Home, Users, Settings } from 'lucide-react'
+
+const navGroup = {
+  title: 'Main',
+  items: [
+    {
+      title: 'Dashboard',
+      url: '/',
+      icon: Home,
+    },
+    {
+      title: 'Users',
+      url: '/users',
+      icon: Users,
+      badge: '12',
+    },
+    {
+      title: 'Settings',
+      url: '/settings',
+      icon: Settings,
+    },
+  ],
+}
+
+<NavGroup {...navGroup} />
+```
+
+### Nested Navigation
+
+From `src/components/layout/nav-group.tsx:84-128`:
+
+```tsx
+const navGroup = {
+  title: 'Admin',
+  items: [
+    {
+      title: 'User Management',
+      icon: Users,
+      items: [
+        {
+          title: 'All Users',
+          url: '/users',
+        },
+        {
+          title: 'Roles',
+          url: '/users/roles',
+        },
+        {
+          title: 'Permissions',
+          url: '/users/permissions',
+        },
+      ],
+    },
+  ],
+}
+
+<NavGroup {...navGroup} />
+```
+
+Nested items automatically render as:
+- **Collapsible** - Expandable menu when sidebar is expanded
+- **Dropdown** - Dropdown menu when sidebar is collapsed
+
+### With Badges
+
+```tsx
+const navGroup = {
+  title: 'Notifications',
+  items: [
+    {
+      title: 'Messages',
+      url: '/messages',
+      icon: Mail,
+      badge: '3',  // Renders as a badge
+    },
+    {
+      title: 'Updates',
+      url: '/updates',
+      icon: Bell,
+      badge: 'New',
+    },
+  ],
+}
+```
+
+## TeamSwitcher
+
+Dropdown for switching between multiple teams or workspaces.
+
+### Props
+
+From `src/components/layout/team-switcher.tsx:19-25`:
+
+<ParamField path="teams" type="Team[]" required>
+  Array of team objects with name, logo, and plan
+</ParamField>
+
+```tsx
+type Team = {
+  name: string
+  logo: React.ElementType  // Icon component
+  plan: string
+}
+```
+
+### Usage
+
+```tsx
+import { TeamSwitcher } from '@/components/layout/team-switcher'
+import { Building, Briefcase } from 'lucide-react'
+
+const teams = [
+  {
+    name: 'Acme Corp',
+    logo: Building,
+    plan: 'Enterprise',
+  },
+  {
+    name: 'Acme Inc',
+    logo: Briefcase,
+    plan: 'Pro',
+  },
+]
+
+<TeamSwitcher teams={teams} />
+```
+
+### Features
+
+From `src/components/layout/team-switcher.tsx:27-86`:
+
+- Active team indicator
+- Keyboard shortcuts (⌘1, ⌘2, etc.)
+- Add new team option
+- Responsive positioning (bottom on mobile, right on desktop)
+
+## Sidebar Data Structure
+
+Organize your navigation data in a centralized file:
+
+```tsx
+// src/components/layout/data/sidebar-data.ts
+import { Home, Users, Settings, FileText, BarChart } from 'lucide-react'
+import type { SidebarData } from '../types'
+
+export const sidebarData: SidebarData = {
+  user: {
+    name: 'John Doe',
+    email: 'john@example.com',
+    avatar: '/avatars/john.jpg',
+  },
+  teams: [
+    {
+      name: 'Acme Corp',
+      logo: Building,
+      plan: 'Enterprise',
+    },
+  ],
+  navGroups: [
+    {
+      title: 'Main',
+      items: [
+        {
+          title: 'Dashboard',
+          url: '/',
+          icon: Home,
+        },
+        {
+          title: 'Analytics',
+          url: '/analytics',
+          icon: BarChart,
+        },
+      ],
+    },
+    {
+      title: 'Management',
+      items: [
+        {
+          title: 'Users',
+          icon: Users,
+          items: [
+            { title: 'All Users', url: '/users' },
+            { title: 'Roles', url: '/users/roles' },
+          ],
+        },
+        {
+          title: 'Content',
+          url: '/content',
+          icon: FileText,
+        },
+      ],
+    },
+    {
+      title: 'Settings',
+      items: [
+        {
+          title: 'Settings',
+          url: '/settings',
+          icon: Settings,
+        },
+      ],
+    },
+  ],
+}
+```
+
+## Layout Integration
+
+Integrate the sidebar with your main layout:
+
+```tsx
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+import { AppSidebar } from '@/components/layout/app-sidebar'
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <main className="flex flex-1 flex-col">
+          {children}
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
+  )
+}
+```
+
+## Responsive Behavior
+
+The sidebar automatically adapts to different screen sizes:
+
+### Mobile
+- Renders as an overlay/drawer
+- Closes automatically after navigation
+- Accessible via hamburger menu
+
+### Desktop
+- Visible by default
+- Can be collapsed to icon-only view
+- Persists state across navigation
+
+### Implementation
+
+From `src/components/layout/nav-group.tsx:36-58`:
+
+```tsx
+export function NavGroup({ title, items }: NavGroupProps) {
+  const { state, isMobile } = useSidebar()
+  const href = useLocation({ select: (location) => location.href })
+  
+  return (
+    <SidebarGroup>
+      <SidebarGroupLabel>{title}</SidebarGroupLabel>
+      <SidebarMenu>
+        {items.map((item) => {
+          const key = `${item.title}-${item.url}`
+
+          // Simple link for items without children
+          if (!item.items)
+            return <SidebarMenuLink key={key} item={item} href={href} />
+
+          // Dropdown menu when collapsed on desktop
+          if (state === 'collapsed' && !isMobile)
+            return (
+              <SidebarMenuCollapsedDropdown key={key} item={item} href={href} />
+            )
+
+          // Collapsible menu when expanded
+          return <SidebarMenuCollapsible key={key} item={item} href={href} />
+        })}
+      </SidebarMenu>
+    </SidebarGroup>
+  )
+}
+```
+
+## Active Link Highlighting
+
+Navigation items automatically highlight based on the current route:
+
+```tsx
+function checkIsActive(href: string, item: NavItem, mainNav = false) {
+  return (
+    href === item.url || // Exact match
+    href.split('?')[0] === item.url || // Match without query params
+    !!item?.items?.filter((i) => i.url === href).length || // Child is active
+    (mainNav &&
+      href.split('/')[1] !== '' &&
+      href.split('/')[1] === item?.url?.split('/')[1]) // Section match
+  )
+}
+```
+
+## Sidebar Hooks
+
+### useSidebar
+
+Access sidebar state and controls:
+
+```tsx
+import { useSidebar } from '@/components/ui/sidebar'
+
+function Component() {
+  const {
+    state,        // 'expanded' | 'collapsed'
+    open,         // boolean
+    isMobile,     // boolean
+    openMobile,   // boolean
+    setOpenMobile,
+    toggleSidebar,
+  } = useSidebar()
+
+  return (
+    <button onClick={toggleSidebar}>
+      {state === 'expanded' ? 'Collapse' : 'Expand'}
+    </button>
+  )
+}
+```
+
+## Customization
+
+### Custom App Title
+
+Replace TeamSwitcher with a simple app title:
+
+```tsx
+import { AppTitle } from '@/components/layout/app-title'
+
+export function AppSidebar() {
+  return (
+    <Sidebar>
+      <SidebarHeader>
+        <AppTitle />  {/* Instead of TeamSwitcher */}
+      </SidebarHeader>
+      {/* ... */}
+    </Sidebar>
+  )
+}
+```
+
+### Custom Nav Items
+
+Create custom navigation components:
+
+```tsx
+import {
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from '@/components/ui/sidebar'
+import { Link } from '@tanstack/react-router'
+
+function CustomNavItem() {
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <Link to="/custom">
+            <CustomIcon />
+            <span>Custom Page</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  )
+}
+```
+
+### Styling
+
+Customize sidebar appearance with CSS variables:
+
+```css
+:root {
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 220 13% 91%;
+}
+```
+
+## Complete Example
+
+<Accordion title="View Complete Sidebar Implementation">
+```tsx
+// sidebar-data.ts
+import {
+  Home,
+  Users,
+  Settings,
+  FileText,
+  BarChart,
+  Building,
+} from 'lucide-react'
+import type { SidebarData } from '../types'
+
+export const sidebarData: SidebarData = {
+  user: {
+    name: 'Sarah Johnson',
+    email: 'sarah@example.com',
+    avatar: '/avatars/sarah.jpg',
+  },
+  teams: [
+    {
+      name: 'Acme Corp',
+      logo: Building,
+      plan: 'Enterprise',
+    },
+  ],
+  navGroups: [
+    {
+      title: 'Dashboard',
+      items: [
+        {
+          title: 'Overview',
+          url: '/',
+          icon: Home,
+        },
+        {
+          title: 'Analytics',
+          url: '/analytics',
+          icon: BarChart,
+        },
+      ],
+    },
+    {
+      title: 'Management',
+      items: [
+        {
+          title: 'Users',
+          icon: Users,
+          badge: '12',
+          items: [
+            { title: 'All Users', url: '/users' },
+            { title: 'Add User', url: '/users/new' },
+            { title: 'Roles', url: '/users/roles' },
+          ],
+        },
+        {
+          title: 'Content',
+          url: '/content',
+          icon: FileText,
+        },
+      ],
+    },
+    {
+      title: 'System',
+      items: [
+        {
+          title: 'Settings',
+          url: '/settings',
+          icon: Settings,
+        },
+      ],
+    },
+  ],
+}
+
+// app-sidebar.tsx
+import { useLayout } from '@/context/layout-provider'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarRail,
+} from '@/components/ui/sidebar'
+import { sidebarData } from './data/sidebar-data'
+import { NavGroup } from './nav-group'
+import { NavUser } from './nav-user'
+import { TeamSwitcher } from './team-switcher'
+
+export function AppSidebar() {
+  const { collapsible, variant } = useLayout()
+  
+  return (
+    <Sidebar collapsible={collapsible} variant={variant}>
+      <SidebarHeader>
+        <TeamSwitcher teams={sidebarData.teams} />
+      </SidebarHeader>
+      
+      <SidebarContent>
+        {sidebarData.navGroups.map((props) => (
+          <NavGroup key={props.title} {...props} />
+        ))}
+      </SidebarContent>
+      
+      <SidebarFooter>
+        <NavUser user={sidebarData.user} />
+      </SidebarFooter>
+      
+      <SidebarRail />
+    </Sidebar>
+  )
+}
+```
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="UI Components" icon="palette" href="/components/ui-components">
+    Explore all UI components
+  </Card>
+  
+  <Card title="Forms" icon="file-input" href="/components/forms">
+    Build validated forms
+  </Card>
+</CardGroup>

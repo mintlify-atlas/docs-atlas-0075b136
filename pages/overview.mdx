@@ -1,0 +1,152 @@
+---
+title: Pages Overview
+description: Pre-built page templates included in Shadcn Admin
+---
+
+Shadcn Admin provides a comprehensive collection of ready-to-use page templates that cover common admin panel use cases. All pages are built with React, TypeScript, and TanStack Router.
+
+## Available Page Templates
+
+<CardGroup cols={2}>
+  <Card title="Dashboard" icon="chart-line" href="/pages/dashboard">
+    Analytics dashboard with metrics cards, charts, and data visualization
+  </Card>
+  <Card title="Authentication" icon="lock" href="/pages/authentication">
+    Sign-in, sign-up, forgot password, and OTP verification pages
+  </Card>
+  <Card title="Error Pages" icon="triangle-exclamation" href="/pages/error-pages">
+    401, 403, 404, 500, and 503 error pages with consistent styling
+  </Card>
+  <Card title="Settings" icon="gear" href="/pages/settings">
+    Profile, account, appearance, notifications, and display settings
+  </Card>
+  <Card title="Tasks" icon="check-square">
+    Task management with filtering, sorting, and status tracking
+  </Card>
+  <Card title="Users" icon="users">
+    User management with role-based access control
+  </Card>
+  <Card title="Chats" icon="comments">
+    Real-time messaging interface
+  </Card>
+  <Card title="Apps" icon="grid">
+    Application directory and management
+  </Card>
+</CardGroup>
+
+## Page Structure
+
+All page templates in Shadcn Admin follow a consistent architectural pattern:
+
+### Route Definition
+
+Pages are defined using TanStack Router's file-based routing system:
+
+```tsx
+// src/routes/_authenticated/index.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { Dashboard } from '@/features/dashboard'
+
+export const Route = createFileRoute('/_authenticated/')({\n  component: Dashboard,
+})
+```
+
+### Feature-Based Organization
+
+Page components are organized in the `src/features/` directory, separating routing logic from UI implementation:
+
+```
+src/
+├── routes/              # Route definitions
+│   ├── _authenticated/  # Protected routes
+│   ├── (auth)/         # Auth routes
+│   └── (errors)/       # Error pages
+└── features/           # Page implementations
+    ├── dashboard/
+    ├── auth/
+    ├── settings/
+    └── errors/
+```
+
+## Authentication
+
+Pages are organized into two main groups:
+
+<Tabs>
+  <Tab title="Protected Routes">
+    Routes under `_authenticated/` require authentication:
+    - Dashboard (`/`)
+    - Tasks (`/tasks`)
+    - Users (`/users`)
+    - Settings (`/settings/*`)
+    - Chats (`/chats`)
+    - Apps (`/apps`)
+  </Tab>
+  <Tab title="Public Routes">
+    Routes under `(auth)/` and `(errors)/` are publicly accessible:
+    - Sign In (`/sign-in`)
+    - Sign Up (`/sign-up`)
+    - Forgot Password (`/forgot-password`)
+    - OTP Verification (`/otp`)
+    - Error pages (`/401`, `/403`, `/404`, `/500`, `/503`)
+  </Tab>
+</Tabs>
+
+## Layout Components
+
+Shared layout components are used across pages:
+
+<CardGroup cols={2}>
+  <Card title="Header" icon="rectangle-wide">
+    Top navigation with search, theme switcher, and profile dropdown
+  </Card>
+  <Card title="Main" icon="square">
+    Main content wrapper with consistent padding and spacing
+  </Card>
+  <Card title="Sidebar" icon="sidebar">
+    Collapsible navigation sidebar for authenticated pages
+  </Card>
+  <Card title="AuthLayout" icon="lock">
+    Centered layout for authentication pages
+  </Card>
+</CardGroup>
+
+## Search Params & Filtering
+
+Many pages support URL-based filtering and pagination using Zod schemas:
+
+```tsx
+// src/routes/_authenticated/tasks/index.tsx
+const taskSearchSchema = z.object({
+  page: z.number().optional().catch(1),
+  pageSize: z.number().optional().catch(10),
+  status: z.array(z.enum(['todo', 'in-progress', 'done'])).optional(),
+  priority: z.array(z.enum(['low', 'medium', 'high'])).optional(),
+  filter: z.string().optional().catch(''),
+})
+
+export const Route = createFileRoute('/_authenticated/tasks/')({\n  validateSearch: taskSearchSchema,
+  component: Tasks,
+})
+```
+
+<Note>
+URL search params are type-safe and validated at runtime using Zod schemas.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Dashboard" icon="arrow-right" href="/pages/dashboard">
+    Learn about the dashboard page structure
+  </Card>
+  <Card title="Authentication" icon="arrow-right" href="/pages/authentication">
+    Explore authentication page templates
+  </Card>
+  <Card title="Settings" icon="arrow-right" href="/pages/settings">
+    Customize settings pages
+  </Card>
+  <Card title="Error Pages" icon="arrow-right" href="/pages/error-pages">
+    Handle errors gracefully
+  </Card>
+</CardGroup>

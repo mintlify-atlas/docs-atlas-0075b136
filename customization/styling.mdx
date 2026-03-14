@@ -1,0 +1,389 @@
+---
+title: Styling
+description: Learn how to style components and customize the design system
+---
+
+Shadcn Admin uses Tailwind CSS v4 for styling, with utility classes and a custom design token system built on CSS variables.
+
+## Tailwind CSS Configuration
+
+The project uses Tailwind CSS v4 with the Vite plugin:
+
+```json package.json
+{
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.18",
+    "tailwindcss": "^4.1.18"
+  }
+}
+```
+
+### Components Configuration
+
+Styling paths are defined in `components.json`:
+
+```json components.json
+{
+  "style": "new-york",
+  "tailwind": {
+    "css": "src/styles/index.css",
+    "baseColor": "slate",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils"
+  }
+}
+```
+
+## Design Tokens
+
+Shadcn Admin uses CSS variables as design tokens, defined in the `@theme inline` block:
+
+```css src/styles/theme.css
+@theme inline {
+  --font-inter: 'Inter', 'sans-serif';
+  --font-manrope: 'Manrope', 'sans-serif';
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+```
+
+## Global Styles
+
+Base styles are applied in `src/styles/index.css`:
+
+```css src/styles/index.css
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import './theme.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  
+  html {
+    @apply overflow-x-hidden;
+  }
+  
+  body {
+    @apply min-h-svh w-full bg-background text-foreground;
+    @apply has-[div[data-variant='inset']]:bg-sidebar;
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
+```
+
+### Mobile Input Optimization
+
+Prevents zoom on input focus on mobile devices:
+
+```css src/styles/index.css
+@media screen and (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+```
+
+## Utility Classes
+
+Custom utility classes defined with Tailwind v4's `@utility` directive:
+
+### Container
+
+```css src/styles/index.css
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+}
+```
+
+Usage:
+```tsx
+<div className="container">
+  {/* Content */}
+</div>
+```
+
+### No Scrollbar
+
+Hide scrollbars across all browsers:
+
+```css src/styles/index.css
+@utility no-scrollbar {
+  /* Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  /* IE, Edge and Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+```
+
+Usage:
+```tsx
+<div className="overflow-auto no-scrollbar">
+  {/* Scrollable content without visible scrollbar */}
+</div>
+```
+
+### Faded Bottom
+
+Adds a gradient fade effect at the bottom:
+
+```css src/styles/index.css
+@utility faded-bottom {
+  @apply after:pointer-events-none after:absolute after:start-0 
+         after:bottom-0 after:hidden after:h-32 after:w-full 
+         after:rounded-b-2xl 
+         after:bg-[linear-gradient(180deg,transparent_10%,var(--background)_70%)] 
+         md:after:block;
+}
+```
+
+## Component Styling
+
+### Using cn() Utility
+
+The `cn()` utility combines `clsx` and `tailwind-merge` for conditional classes:
+
+```ts src/lib/utils.ts
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+```
+
+Usage in components:
+
+```tsx
+import { cn } from '@/lib/utils'
+
+function Button({ className, variant, ...props }) {
+  return (
+    <button
+      className={cn(
+        'inline-flex items-center justify-center',
+        variant === 'primary' && 'bg-primary text-primary-foreground',
+        className
+      )}
+      {...props}
+    />
+  )
+}
+```
+
+### Class Variance Authority
+
+For complex component variants, use CVA:
+
+```tsx src/components/ui/button.tsx
+import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from '@/lib/utils'
+
+const buttonVariants = cva(
+  'inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-all',
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90',
+        destructive: 'bg-destructive text-white shadow-xs hover:bg-destructive/90',
+        outline: 'border bg-background shadow-xs hover:bg-accent',
+        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        ghost: 'hover:bg-accent hover:text-accent-foreground',
+        link: 'text-primary underline-offset-4 hover:underline',
+      },
+      size: {
+        default: 'h-9 px-4 py-2',
+        sm: 'h-8 rounded-md gap-1.5 px-3',
+        lg: 'h-10 rounded-md px-6',
+        icon: 'size-9',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  }
+)
+
+function Button({ className, variant, size, ...props }) {
+  return (
+    <button
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  )
+}
+```
+
+## Dark Mode Styling
+
+Use the `dark:` variant for dark mode styles:
+
+```tsx
+<div className="bg-white dark:bg-gray-900 text-black dark:text-white">
+  Content
+</div>
+```
+
+The custom variant is defined in the CSS:
+
+```css src/styles/index.css
+@custom-variant dark (&:is(.dark *));
+```
+
+## Focus Styles
+
+Consistent focus styling across components:
+
+```tsx
+const buttonVariants = cva(
+  'outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
+  // ...
+)
+```
+
+## Animations
+
+Shadcn Admin uses `tw-animate-css` for animations:
+
+```json package.json
+{
+  "dependencies": {
+    "tw-animate-css": "^1.4.0"
+  }
+}
+```
+
+### Custom Animations
+
+Define custom animations in your CSS:
+
+```css src/styles/index.css
+.CollapsibleContent[data-state='open'] {
+  animation: slideDown 300ms ease-out;
+}
+
+.CollapsibleContent[data-state='closed'] {
+  animation: slideUp 300ms ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    height: var(--radix-collapsible-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+```
+
+## Responsive Design
+
+Tailwind's responsive prefixes work as expected:
+
+```tsx
+<div className="w-full md:w-1/2 lg:w-1/3">
+  {/* Responsive width */}
+</div>
+```
+
+### Container Queries
+
+The layout uses container queries for responsive content:
+
+```tsx src/components/layout/authenticated-layout.tsx
+<SidebarInset className="@container/content">
+  {/* Content can use @md, @lg, etc. */}
+</SidebarInset>
+```
+
+## Best Practices
+
+<Steps>
+
+<Step title="Use Design Tokens">
+Prefer CSS variables over hard-coded colors:
+```tsx
+// Good
+<div className="bg-background text-foreground" />
+
+// Avoid
+<div className="bg-white text-black" />
+```
+</Step>
+
+<Step title="Use cn() for Conditional Classes">
+Always use the `cn()` utility to merge classes properly:
+```tsx
+import { cn } from '@/lib/utils'
+
+function Component({ className }) {
+  return <div className={cn('base-class', className)} />
+}
+```
+</Step>
+
+<Step title="Leverage CVA for Variants">
+Use Class Variance Authority for components with multiple variants:
+```tsx
+const variants = cva('base', {
+  variants: { /* ... */ }
+})
+```
+</Step>
+
+<Step title="Support Dark Mode">
+Always provide dark mode variants for custom styles:
+```tsx
+<div className="bg-gray-100 dark:bg-gray-800" />
+```
+</Step>
+
+</Steps>
+
+<Note>
+Shadcn Admin uses Tailwind CSS v4, which has a different configuration approach than v3. Make sure to use `@import` directives and `@theme` blocks instead of traditional `tailwind.config.js`.
+</Note>

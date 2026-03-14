@@ -1,0 +1,433 @@
+---
+title: Authentication
+description: Learn how to implement authentication in Shadcn Admin using the built-in system or Clerk
+---
+
+## Overview
+
+Shadcn Admin provides two authentication approaches:
+
+1. **Built-in Auth** - Custom authentication forms with Zustand store
+2. **Clerk Integration** - Pre-configured Clerk authentication (optional)
+
+<Note>
+  The Clerk integration is completely optional and isolated in `src/routes/clerk/`. You can use it or remove it without affecting the rest of the application.
+</Note>
+
+## Built-in Authentication
+
+The default authentication system uses custom forms, Zustand for state management, and route protection.
+
+### Authentication Routes
+
+Auth routes are grouped using parentheses to keep URLs clean:
+
+```tsx src/routes/(auth)/sign-in.tsx
+import { z } from 'zod'
+import { createFileRoute } from '@tanstack/react-router'
+import { SignIn } from '@/features/auth/sign-in'
+
+const searchSchema = z.object({
+  redirect: z.string().optional(),
+})
+
+export const Route = createFileRoute('/(auth)/sign-in')({
+  component: SignIn,
+  validateSearch: searchSchema,
+})
+```
+
+Available auth routes:
+- `/sign-in` - User login
+- `/sign-in-2` - Alternative login layout
+- `/sign-up` - User registration  
+- `/forgot-password` - Password recovery
+- `/otp` - One-time password verification
+
+### Auth Store
+
+The authentication state is managed in Zustand:
+
+```typescript src/stores/auth-store.ts
+import { create } from 'zustand'
+import { getCookie, setCookie, removeCookie } from '@/lib/cookies'
+
+const ACCESS_TOKEN = 'thisisjustarandomstring'
+
+interface AuthUser {
+  accountNo: string
+  email: string
+  role: string[]
+  exp: number
+}
+
+interface AuthState {
+  auth: {
+    user: AuthUser | null
+    setUser: (user: AuthUser | null) => void
+    accessToken: string
+    setAccessToken: (accessToken: string) => void
+    resetAccessToken: () => void
+    reset: () => void
+  }
+}
+
+export const useAuthStore = create<AuthState>()((set) => {
+  const cookieState = getCookie(ACCESS_TOKEN)
+  const initToken = cookieState ? JSON.parse(cookieState) : ''
+  
+  return {
+    auth: {
+      user: null,
+      setUser: (user) =>
+        set((state) => ({ ...state, auth: { ...state.auth, user } })),
+      accessToken: initToken,
+      setAccessToken: (accessToken) =>
+        set((state) => {
+          setCookie(ACCESS_TOKEN, JSON.stringify(accessToken))
+          return { ...state, auth: { ...state.auth, accessToken } }
+        }),
+      resetAccessToken: () =>
+        set((state) => {
+          removeCookie(ACCESS_TOKEN)
+          return { ...state, auth: { ...state.auth, accessToken: '' } }
+        }),
+      reset: () =>
+        set((state) => {
+          removeCookie(ACCESS_TOKEN)
+          return {
+            ...state,
+            auth: { ...state.auth, user: null, accessToken: '' },
+          }
+        }),
+    },
+  }
+})
+```
+
+### Sign In Implementation
+
+The sign-in form demonstrates the complete auth flow:
+
+```tsx src/features/auth/sign-in/components/user-auth-form.tsx
+import { useState } from 'react'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
+import { useAuthStore } from '@/stores/auth-store'
+
+const formSchema = z.object({
+  email: z.email({
+    error: (iss) => (iss.input === '' ? 'Please enter your email' : undefined),
+  }),
+  password: z
+    .string()
+    .min(1, 'Please enter your password')
+    .min(7, 'Password must be at least 7 characters long'),
+})
+
+export function UserAuthForm({ redirectTo }: UserAuthFormProps) {
+  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
+  const { auth } = useAuthStore()
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { email: '', password: '' },
+  })
+
+  function onSubmit(data: z.infer<typeof formSchema>) {
+    setIsLoading(true)
+
+    toast.promise(sleep(2000), {
+      loading: 'Signing in...',
+      success: () => {
+        setIsLoading(false)
+
+        // Set user data
+        const mockUser = {
+          accountNo: 'ACC001',
+          email: data.email,
+          role: ['user'],
+          exp: Date.now() + 24 * 60 * 60 * 1000,
+        }
+
+        auth.setUser(mockUser)
+        auth.setAccessToken('mock-access-token')
+
+        // Redirect after login
+        const targetPath = redirectTo || '/'
+        navigate({ to: targetPath, replace: true })
+
+        return `Welcome back, ${data.email}!`
+      },
+      error: 'Error',
+    })
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        {/* Form fields */}
+      </form>
+    </Form>
+  )
+}
+```
+
+### Protected Routes
+
+The `_authenticated` layout protects routes requiring authentication:
+
+```tsx src/routes/_authenticated/route.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { AuthenticatedLayout } from '@/components/layout/authenticated-layout'
+
+export const Route = createFileRoute('/_authenticated')({
+  component: AuthenticatedLayout,
+})
+```
+
+All routes under `_authenticated/` are automatically protected:
+
+```
+src/routes/
+├── _authenticated/
+│   ├── index.tsx         # Protected dashboard
+│   ├── tasks/
+│   ├── settings/
+│   └── users/
+```
+
+### Session Expiry Handling
+
+Global error handling redirects to sign-in on 401:
+
+```tsx src/main.tsx
+import { useAuthStore } from '@/stores/auth-store'
+
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error) => {
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 401) {
+          toast.error('Session expired!')
+          useAuthStore.getState().auth.reset()
+          const redirect = `${router.history.location.href}`
+          router.navigate({ to: '/sign-in', search: { redirect } })
+        }
+      }
+    },
+  }),
+})
+```
+
+## Clerk Integration
+
+Clerk provides a complete authentication solution with user management, social logins, and more.
+
+### Setup
+
+<Steps>
+  <Step title="Install Dependencies">
+    Clerk is already included in `package.json`:
+
+    ```json
+    {
+      "dependencies": {
+        "@clerk/clerk-react": "^5.58.1"
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Get API Keys">
+    1. Create an account at [clerk.com](https://clerk.com)
+    2. Create a new application
+    3. Copy your Publishable Key from the API Keys page
+  </Step>
+
+  <Step title="Configure Environment">
+    Create `.env` file:
+
+    ```bash .env
+    VITE_CLERK_PUBLISHABLE_KEY=your_publishable_key_here
+    ```
+  </Step>
+</Steps>
+
+### Clerk Provider Setup
+
+Clerk is configured at the route level:
+
+```tsx src/routes/clerk/route.tsx
+import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { ClerkProvider } from '@clerk/clerk-react'
+
+export const Route = createFileRoute('/clerk')({
+  component: RouteComponent,
+})
+
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+
+function RouteComponent() {
+  if (!PUBLISHABLE_KEY) {
+    return <MissingClerkPubKey />
+  }
+
+  return (
+    <ClerkProvider
+      publishableKey={PUBLISHABLE_KEY}
+      afterSignOutUrl='/clerk/sign-in'
+      signInUrl='/clerk/sign-in'
+      signUpUrl='/clerk/sign-up'
+      signInFallbackRedirectUrl='/clerk/user-management'
+      signUpFallbackRedirectUrl='/clerk/user-management'
+    >
+      <Outlet />
+    </ClerkProvider>
+  )
+}
+```
+
+### Clerk Sign In
+
+Use Clerk's pre-built components:
+
+```tsx src/routes/clerk/(auth)/sign-in.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SignIn } from '@clerk/clerk-react'
+import { Skeleton } from '@/components/ui/skeleton'
+
+export const Route = createFileRoute('/clerk/(auth)/sign-in')({
+  component: () => (
+    <SignIn
+      initialValues={{
+        emailAddress: 'your_mail+shadcn_admin@gmail.com',
+      }}
+      fallback={<Skeleton className='h-[30rem] w-[25rem]' />}
+    />
+  ),
+})
+```
+
+### Protected Clerk Routes
+
+Check authentication with Clerk hooks:
+
+```tsx src/routes/clerk/_authenticated/user-management.tsx
+import { useAuth } from '@clerk/clerk-react'
+import { Loader2 } from 'lucide-react'
+
+function UserManagement() {
+  const { isLoaded, isSignedIn } = useAuth()
+
+  if (!isLoaded) {
+    return (
+      <div className='flex h-svh items-center justify-center'>
+        <Loader2 className='size-8 animate-spin' />
+      </div>
+    )
+  }
+
+  if (!isSignedIn) {
+    return <Unauthorized />
+  }
+
+  return <ProtectedContent />
+}
+```
+
+### User Profile Component
+
+Display user info with Clerk's `UserButton`:
+
+```tsx
+import { SignedIn, UserButton } from '@clerk/clerk-react'
+
+function Header() {
+  return (
+    <SignedIn>
+      <Header fixed>
+        <Search />
+        <div className='ms-auto flex items-center space-x-4'>
+          <ThemeSwitch />
+          <UserButton />
+        </div>
+      </Header>
+    </SignedIn>
+  )
+}
+```
+
+## Choosing an Approach
+
+<CardGroup cols={2}>
+  <Card title="Use Built-in Auth For" icon="code">
+    - Full control over auth flow
+    - Custom UI requirements
+    - Existing backend integration
+    - Learning authentication patterns
+  </Card>
+  
+  <Card title="Use Clerk For" icon="shield-check">
+    - Quick setup with minimal code
+    - Social authentication providers
+    - Advanced security features
+    - User management dashboard
+  </Card>
+</CardGroup>
+
+## Removing Clerk
+
+If you don't need Clerk, remove it cleanly:
+
+<Steps>
+  <Step title="Delete Clerk Routes">
+    ```bash
+    rm -rf src/routes/clerk
+    ```
+  </Step>
+
+  <Step title="Uninstall Package">
+    ```bash
+    npm uninstall @clerk/clerk-react
+    ```
+  </Step>
+
+  <Step title="Remove Environment Variable">
+    Delete `VITE_CLERK_PUBLISHABLE_KEY` from `.env`
+  </Step>
+</Steps>
+
+<Warning>
+  The Clerk integration is isolated in `src/routes/clerk/` and can be safely removed without affecting the rest of the application.
+</Warning>
+
+## Best Practices
+
+<Steps>
+  <Step title="Store Tokens Securely">
+    Use httpOnly cookies for production instead of localStorage.
+  </Step>
+
+  <Step title="Handle Token Expiry">
+    Implement automatic token refresh or redirect to login.
+  </Step>
+
+  <Step title="Validate on Backend">
+    Never trust client-side authentication alone.
+  </Step>
+
+  <Step title="Use HTTPS">
+    Always use HTTPS in production to protect credentials.
+  </Step>
+</Steps>
+
+## Related Resources
+
+- [TanStack Router Authentication](https://tanstack.com/router/latest/docs/framework/react/guide/authenticated-routes)
+- [Clerk Documentation](https://clerk.com/docs)
+- [Zustand State Management](/guides/state-management)

@@ -1,0 +1,494 @@
+---
+title: UI Components
+description: API reference for core UI components in Shadcn Admin.
+---
+
+Shadcn Admin includes a comprehensive set of UI components built on top of shadcn/ui and Radix UI primitives.
+
+## Button
+
+Versatile button component with multiple variants and sizes.
+
+### Import
+
+```tsx
+import { Button } from '@/components/ui/button'
+```
+
+### Props
+
+<ParamField path="variant" type="string" default="default">
+  Visual style variant:
+  - `default`: Primary button with solid background
+  - `destructive`: Red destructive action button
+  - `outline`: Outlined button with border
+  - `secondary`: Secondary action button
+  - `ghost`: Transparent button for subtle actions
+  - `link`: Text-only link-style button
+</ParamField>
+
+<ParamField path="size" type="string" default="default">
+  Button size:
+  - `default`: Standard height (h-9)
+  - `sm`: Small height (h-8)
+  - `lg`: Large height (h-10)
+  - `icon`: Square icon button (size-9)
+</ParamField>
+
+<ParamField path="asChild" type="boolean" default="false">
+  Render as a child element using Radix Slot (useful for custom elements or links)
+</ParamField>
+
+### Usage Examples
+
+<CodeGroup>
+
+```tsx Variants
+import { Button } from '@/components/ui/button'
+
+function Examples() {
+  return (
+    <>
+      <Button variant="default">Primary</Button>
+      <Button variant="destructive">Delete</Button>
+      <Button variant="outline">Cancel</Button>
+      <Button variant="secondary">Secondary</Button>
+      <Button variant="ghost">Ghost</Button>
+      <Button variant="link">Link</Button>
+    </>
+  )
+}
+```
+
+```tsx Sizes
+import { Button } from '@/components/ui/button'
+
+function Examples() {
+  return (
+    <>
+      <Button size="sm">Small</Button>
+      <Button size="default">Default</Button>
+      <Button size="lg">Large</Button>
+      <Button size="icon">🔍</Button>
+    </>
+  )
+}
+```
+
+```tsx With Icons
+import { Button } from '@/components/ui/button'
+import { ChevronRight, Trash2 } from 'lucide-react'
+
+function Examples() {
+  return (
+    <>
+      <Button>
+        Continue
+        <ChevronRight />
+      </Button>
+      
+      <Button variant="destructive" size="icon">
+        <Trash2 />
+      </Button>
+    </>
+  )
+}
+```
+
+```tsx As Link
+import { Button } from '@/components/ui/button'
+import { Link } from '@tanstack/react-router'
+
+function Example() {
+  return (
+    <Button asChild>
+      <Link to="/dashboard">Go to Dashboard</Link>
+    </Button>
+  )
+}
+```
+
+</CodeGroup>
+
+---
+
+## Input
+
+Text input component with consistent styling.
+
+### Import
+
+```tsx
+import { Input } from '@/components/ui/input'
+```
+
+### Props
+
+Extends standard HTML `<input>` props with custom styling.
+
+<ParamField path="type" type="string" default="text">
+  Input type (text, email, password, number, etc.)
+</ParamField>
+
+<ParamField path="className" type="string">
+  Additional CSS classes (merged with base styles)
+</ParamField>
+
+### Usage Example
+
+```tsx
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+
+function Form() {
+  return (
+    <div>
+      <Label htmlFor="email">Email</Label>
+      <Input
+        id="email"
+        type="email"
+        placeholder="you@example.com"
+      />
+    </div>
+  )
+}
+```
+
+---
+
+## Card
+
+Container component for grouping related content.
+
+### Import
+
+```tsx
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/ui/card'
+```
+
+### Subcomponents
+
+<ParamField path="Card" type="component">
+  Root container with border and shadow
+</ParamField>
+
+<ParamField path="CardHeader" type="component">
+  Header section with padding
+</ParamField>
+
+<ParamField path="CardTitle" type="component">
+  Large title text in header
+</ParamField>
+
+<ParamField path="CardDescription" type="component">
+  Muted description text in header
+</ParamField>
+
+<ParamField path="CardContent" type="component">
+  Main content area
+</ParamField>
+
+<ParamField path="CardFooter" type="component">
+  Footer section (typically for actions)
+</ParamField>
+
+### Usage Example
+
+```tsx
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+
+function UserCard() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>User Profile</CardTitle>
+        <CardDescription>Manage your account settings</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p>Content goes here...</p>
+      </CardContent>
+      <CardFooter>
+        <Button>Save Changes</Button>
+      </CardFooter>
+    </Card>
+  )
+}
+```
+
+---
+
+## Dialog
+
+Modal dialog component for focused interactions.
+
+### Import
+
+```tsx
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+```
+
+### Usage Example
+
+```tsx
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+
+function DeleteDialog() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="destructive">Delete</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Are you sure?</DialogTitle>
+          <DialogDescription>
+            This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline">Cancel</Button>
+          <Button variant="destructive">Delete</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+```
+
+---
+
+## Select
+
+Dropdown select component with search and keyboard navigation.
+
+### Import
+
+```tsx
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select'
+```
+
+### Usage Example
+
+```tsx
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select'
+
+function StatusSelect() {
+  return (
+    <Select defaultValue="active">
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Select status" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="active">Active</SelectItem>
+        <SelectItem value="inactive">Inactive</SelectItem>
+        <SelectItem value="pending">Pending</SelectItem>
+      </SelectContent>
+    </Select>
+  )
+}
+```
+
+---
+
+## Table
+
+Semantic table components with consistent styling.
+
+### Import
+
+```tsx
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+} from '@/components/ui/table'
+```
+
+### Usage Example
+
+```tsx
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from '@/components/ui/table'
+
+function UsersTable({ users }) {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Email</TableHead>
+          <TableHead>Status</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {users.map((user) => (
+          <TableRow key={user.id}>
+            <TableCell>{user.name}</TableCell>
+            <TableCell>{user.email}</TableCell>
+            <TableCell>{user.status}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
+}
+```
+
+---
+
+## Badge
+
+Small labeled component for status indicators.
+
+### Import
+
+```tsx
+import { Badge } from '@/components/ui/badge'
+```
+
+### Props
+
+<ParamField path="variant" type="string" default="default">
+  Badge style variant:
+  - `default`: Default gray badge
+  - `secondary`: Secondary style
+  - `destructive`: Red error/warning badge
+  - `outline`: Outlined badge
+</ParamField>
+
+### Usage Example
+
+```tsx
+import { Badge } from '@/components/ui/badge'
+
+function StatusBadge({ status }) {
+  return (
+    <>
+      <Badge>Default</Badge>
+      <Badge variant="secondary">Secondary</Badge>
+      <Badge variant="destructive">Error</Badge>
+      <Badge variant="outline">Outline</Badge>
+    </>
+  )
+}
+```
+
+---
+
+## Toast (Sonner)
+
+Notification system using Sonner.
+
+### Import
+
+```tsx
+import { toast } from 'sonner'
+```
+
+### Usage
+
+```tsx
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+
+function Example() {
+  return (
+    <>
+      <Button onClick={() => toast.success('Saved successfully')}>
+        Success
+      </Button>
+      
+      <Button onClick={() => toast.error('Something went wrong')}>
+        Error
+      </Button>
+      
+      <Button onClick={() => toast.info('New message')}>
+        Info
+      </Button>
+      
+      <Button onClick={() => toast.loading('Loading...')}>
+        Loading
+      </Button>
+    </>
+  )
+}
+```
+
+---
+
+## Additional Components
+
+Shadcn Admin includes many more UI components:
+
+- **Alert**: Contextual feedback messages
+- **Avatar**: User profile images
+- **Checkbox**: Checkbox input with label
+- **Dropdown Menu**: Context menus and dropdowns
+- **Form**: Form field wrapper with validation
+- **Label**: Form field labels
+- **Popover**: Floating content container
+- **Radio Group**: Radio button groups
+- **Scroll Area**: Custom scrollable regions
+- **Separator**: Visual divider line
+- **Skeleton**: Loading placeholder
+- **Switch**: Toggle switch input
+- **Tabs**: Tabbed interface
+- **Textarea**: Multi-line text input
+- **Tooltip**: Hover information
+
+Refer to [shadcn/ui documentation](https://ui.shadcn.com) for detailed API references on these components.

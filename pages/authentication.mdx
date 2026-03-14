@@ -1,0 +1,481 @@
+---
+title: Authentication Pages
+description: Sign-in, sign-up, forgot password, and OTP verification pages
+---
+
+Shadcn Admin includes a complete set of authentication page templates with consistent styling and user experience.
+
+## Overview
+
+All authentication pages use a centered card layout with the `AuthLayout` component and follow a consistent design pattern.
+
+**Location:** `src/features/auth/`  
+**Routes:** `/(auth)/` directory
+
+## Available Pages
+
+<CardGroup cols={2}>
+  <Card title="Sign In" icon="right-to-bracket">
+    Login page with email/password authentication
+  </Card>
+  <Card title="Sign Up" icon="user-plus">
+    Registration page for new users
+  </Card>
+  <Card title="Forgot Password" icon="key">
+    Password recovery flow
+  </Card>
+  <Card title="OTP Verification" icon="shield-halved">
+    Two-factor authentication code entry
+  </Card>
+</CardGroup>
+
+## Sign In Page
+
+The sign-in page allows users to authenticate with email and password.
+
+**Route:** `/sign-in`  
+**File:** `src/features/auth/sign-in/index.tsx`
+
+### Implementation
+
+```tsx
+// src/routes/(auth)/sign-in.tsx
+import { z } from 'zod'
+import { createFileRoute } from '@tanstack/react-router'
+import { SignIn } from '@/features/auth/sign-in'
+
+const searchSchema = z.object({
+  redirect: z.string().optional(),
+})
+
+export const Route = createFileRoute('/(auth)/sign-in')({\n  component: SignIn,
+  validateSearch: searchSchema,
+})
+```
+
+<Note>
+The sign-in route supports an optional `redirect` search parameter for post-login navigation.
+</Note>
+
+### Component Structure
+
+```tsx
+// src/features/auth/sign-in/index.tsx
+import { useSearch } from '@tanstack/react-router'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { AuthLayout } from '../auth-layout'
+import { UserAuthForm } from './components/user-auth-form'
+
+export function SignIn() {
+  const { redirect } = useSearch({ from: '/(auth)/sign-in' })
+
+  return (
+    <AuthLayout>
+      <Card className='gap-4'>
+        <CardHeader>
+          <CardTitle className='text-lg tracking-tight'>Sign in</CardTitle>
+          <CardDescription>
+            Enter your email and password below to <br />
+            log into your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <UserAuthForm redirectTo={redirect} />
+        </CardContent>
+        <CardFooter>
+          <p className='px-8 text-center text-sm text-muted-foreground'>
+            By clicking sign in, you agree to our{' '}
+            <a href='/terms' className='underline underline-offset-4 hover:text-primary'>
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a href='/privacy' className='underline underline-offset-4 hover:text-primary'>
+              Privacy Policy
+            </a>.
+          </p>
+        </CardFooter>
+      </Card>
+    </AuthLayout>
+  )
+}
+```
+
+### Features
+
+- Email and password form fields
+- Form validation with React Hook Form
+- Remember me checkbox
+- Link to forgot password page
+- Social authentication options (OAuth)
+- Terms of service and privacy policy links
+
+## Sign Up Page
+
+The registration page for creating new user accounts.
+
+**Route:** `/sign-up`  
+**File:** `src/features/auth/sign-up/index.tsx`
+
+### Implementation
+
+```tsx
+// src/routes/(auth)/sign-up.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SignUp } from '@/features/auth/sign-up'
+
+export const Route = createFileRoute('/(auth)/sign-up')({\n  component: SignUp,
+})
+```
+
+### Component Structure
+
+```tsx
+// src/features/auth/sign-up/index.tsx
+import { Link } from '@tanstack/react-router'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { AuthLayout } from '../auth-layout'
+import { SignUpForm } from './components/sign-up-form'
+
+export function SignUp() {
+  return (
+    <AuthLayout>
+      <Card className='gap-4'>
+        <CardHeader>
+          <CardTitle className='text-lg tracking-tight'>
+            Create an account
+          </CardTitle>
+          <CardDescription>
+            Enter your email and password to create an account. <br />
+            Already have an account?{' '}
+            <Link
+              to='/sign-in'
+              className='underline underline-offset-4 hover:text-primary'
+            >
+              Sign In
+            </Link>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SignUpForm />
+        </CardContent>
+        <CardFooter>
+          <p className='px-8 text-center text-sm text-muted-foreground'>
+            By creating an account, you agree to our{' '}
+            <a href='/terms' className='underline underline-offset-4 hover:text-primary'>
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a href='/privacy' className='underline underline-offset-4 hover:text-primary'>
+              Privacy Policy
+            </a>.
+          </p>
+        </CardFooter>
+      </Card>
+    </AuthLayout>
+  )
+}
+```
+
+### Features
+
+- Email and password registration
+- Password strength validation
+- Confirm password field
+- Link to sign-in page for existing users
+- Terms acceptance
+
+## Forgot Password Page
+
+Password recovery page where users can request a reset link.
+
+**Route:** `/forgot-password`  
+**File:** `src/features/auth/forgot-password/index.tsx`
+
+### Implementation
+
+```tsx
+// src/routes/(auth)/forgot-password.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { ForgotPassword } from '@/features/auth/forgot-password'
+
+export const Route = createFileRoute('/(auth)/forgot-password')({\n  component: ForgotPassword,
+})
+```
+
+### Component Structure
+
+```tsx
+// src/features/auth/forgot-password/index.tsx
+import { Link } from '@tanstack/react-router'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { AuthLayout } from '../auth-layout'
+import { ForgotPasswordForm } from './components/forgot-password-form'
+
+export function ForgotPassword() {
+  return (
+    <AuthLayout>
+      <Card className='gap-4'>
+        <CardHeader>
+          <CardTitle className='text-lg tracking-tight'>
+            Forgot Password
+          </CardTitle>
+          <CardDescription>
+            Enter your registered email and <br /> we will send you a link to
+            reset your password.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ForgotPasswordForm />
+        </CardContent>
+        <CardFooter>
+          <p className='mx-auto px-8 text-center text-sm text-balance text-muted-foreground'>
+            Don't have an account?{' '}
+            <Link
+              to='/sign-up'
+              className='underline underline-offset-4 hover:text-primary'
+            >
+              Sign up
+            </Link>.
+          </p>
+        </CardFooter>
+      </Card>
+    </AuthLayout>
+  )
+}
+```
+
+### Features
+
+- Email input for password reset
+- Sends recovery link to user's email
+- Link to sign-up page
+- Clear instructions for users
+
+## OTP Verification Page
+
+Two-factor authentication code entry page.
+
+**Route:** `/otp`  
+**File:** `src/features/auth/otp/index.tsx`
+
+### Implementation
+
+```tsx
+// src/routes/(auth)/otp.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { Otp } from '@/features/auth/otp'
+
+export const Route = createFileRoute('/(auth)/otp')({\n  component: Otp,
+})
+```
+
+### Component Structure
+
+```tsx
+// src/features/auth/otp/index.tsx
+import { Link } from '@tanstack/react-router'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { AuthLayout } from '../auth-layout'
+import { OtpForm } from './components/otp-form'
+
+export function Otp() {
+  return (
+    <AuthLayout>
+      <Card className='gap-4'>
+        <CardHeader>
+          <CardTitle className='text-base tracking-tight'>
+            Two-factor Authentication
+          </CardTitle>
+          <CardDescription>
+            Please enter the authentication code. <br /> We have sent the
+            authentication code to your email.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <OtpForm />
+        </CardContent>
+        <CardFooter>
+          <p className='px-8 text-center text-sm text-muted-foreground'>
+            Haven't received it?{' '}
+            <Link
+              to='/sign-in'
+              className='underline underline-offset-4 hover:text-primary'
+            >
+              Resend a new code.
+            </Link>.
+          </p>
+        </CardFooter>
+      </Card>
+    </AuthLayout>
+  )
+}
+```
+
+### Features
+
+- Multi-digit OTP input fields
+- Code verification
+- Resend code functionality
+- Auto-focus and auto-submit
+
+## AuthLayout Component
+
+All authentication pages use the `AuthLayout` wrapper for consistent styling.
+
+**File:** `src/features/auth/auth-layout.tsx`
+
+The layout provides:
+- Centered card container
+- Responsive design
+- Consistent spacing and alignment
+- Logo/branding area
+- Background styling
+
+## Form Components
+
+Each authentication page has its own form component:
+
+<Tabs>
+  <Tab title="UserAuthForm">
+    **Location:** `src/features/auth/sign-in/components/user-auth-form.tsx`
+    
+    - Email and password inputs
+    - Remember me checkbox
+    - Forgot password link
+    - OAuth provider buttons
+    - Form validation
+  </Tab>
+  <Tab title="SignUpForm">
+    **Location:** `src/features/auth/sign-up/components/sign-up-form.tsx`
+    
+    - Email input
+    - Password input with strength meter
+    - Confirm password input
+    - Terms acceptance checkbox
+    - Form validation
+  </Tab>
+  <Tab title="ForgotPasswordForm">
+    **Location:** `src/features/auth/forgot-password/components/forgot-password-form.tsx`
+    
+    - Email input
+    - Submit button
+    - Success/error messages
+  </Tab>
+  <Tab title="OtpForm">
+    **Location:** `src/features/auth/otp/components/otp-form.tsx`
+    
+    - Multiple OTP input fields
+    - Auto-advance on input
+    - Paste support
+    - Verification logic
+  </Tab>
+</Tabs>
+
+## Clerk Integration
+
+Shadcn Admin also includes Clerk authentication integration as an alternative:
+
+**Location:** `src/routes/clerk/(auth)/`
+
+```tsx
+// src/routes/clerk/(auth)/sign-in.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SignIn } from '@clerk/clerk-react'
+
+export const Route = createFileRoute('/clerk/(auth)/sign-in')({\n  component: () => <SignIn />,
+})
+```
+
+<Info>
+Clerk provides a drop-in authentication solution with hosted UI components and user management.
+</Info>
+
+## Customization
+
+### Modifying Card Content
+
+Update the card title, description, and footer text:
+
+```tsx
+<CardHeader>
+  <CardTitle>Your Custom Title</CardTitle>
+  <CardDescription>Your custom description</CardDescription>
+</CardHeader>
+```
+
+### Adding Social Login
+
+Add OAuth provider buttons to the form components:
+
+```tsx
+<Button variant="outline" onClick={handleGoogleLogin}>
+  <GoogleIcon className="mr-2" />
+  Continue with Google
+</Button>
+```
+
+### Customizing AuthLayout
+
+Modify the `AuthLayout` component to add branding, change colors, or adjust spacing.
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Security" icon="shield">
+    Always validate inputs, use HTTPS, implement rate limiting, and follow OAuth best practices
+  </Card>
+  <Card title="UX" icon="user">
+    Provide clear error messages, loading states, and success feedback
+  </Card>
+  <Card title="Accessibility" icon="universal-access">
+    Use proper labels, ARIA attributes, and keyboard navigation support
+  </Card>
+  <Card title="Validation" icon="check-circle">
+    Implement both client-side and server-side validation
+  </Card>
+</CardGroup>
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Error Pages" icon="triangle-exclamation" href="/pages/error-pages">
+    Handle authentication errors with 401 pages
+  </Card>
+  <Card title="Dashboard" icon="chart-line" href="/pages/dashboard">
+    Post-login landing page
+  </Card>
+  <Card title="Settings" icon="gear" href="/pages/settings">
+    User profile and account management
+  </Card>
+  <Card title="Forms" icon="file-lines" href="/components/forms">
+    Form components and validation
+  </Card>
+</CardGroup>

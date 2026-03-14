@@ -1,80 +1,431 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start
+description: Get your Shadcn Admin dashboard up and running in minutes
 ---
 
-## Get started in three steps
+# Quick Start
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+This guide will help you get familiar with Shadcn Admin's structure, customize the dashboard, and start building your own admin interface.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Make sure you've completed the [installation](/installation) before proceeding.
 </Note>
+
+## Project Overview
+
+After starting the development server with `pnpm run dev`, open your browser to `http://localhost:5173`. You'll see a fully functional admin dashboard with:
+
+- A responsive sidebar with navigation
+- Dashboard page with analytics charts
+- User and task management tables
+- Settings pages
+- Authentication pages
+- Error page templates
+
+## Understanding the Structure
+
+Shadcn Admin follows a feature-based architecture:
+
+```plaintext
+src/
+├── components/
+│   ├── ui/                    # Shadcn UI components
+│   ├── app-sidebar.tsx        # Main navigation sidebar
+│   ├── breadcrumb-provider.tsx
+│   ├── data-table/            # Reusable table components
+│   └── ...
+├── features/
+│   ├── dashboard/             # Dashboard analytics
+│   ├── users/                 # User management
+│   ├── tasks/                 # Task management
+│   ├── settings/              # Settings pages
+│   ├── auth/                  # Authentication
+│   └── errors/                # Error pages
+├── routes/                    # TanStack Router routes
+├── hooks/                     # Custom React hooks
+├── lib/                       # Utilities and helpers
+├── stores/                    # Zustand state stores
+├── context/                   # React context providers
+└── main.tsx                   # Application entry point
+```
+
+## Exploring Key Features
+
+<Steps>
+  <Step title="Dashboard Analytics">
+    Navigate to the home page to see the analytics dashboard at `src/features/dashboard/index.tsx`.
+    
+    The dashboard includes:
+    - Overview cards with key metrics
+    - Interactive charts using Recharts
+    - Recent sales/activity list
+    
+    ```typescript src/features/dashboard/index.tsx
+    export default function Dashboard() {
+      return (
+        <div className='flex flex-col gap-6'>
+          <Analytics />
+          <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-7'>
+            <Card className='col-span-4'>
+              <CardHeader>
+                <CardTitle>Overview</CardTitle>
+              </CardHeader>
+              <CardContent className='pl-2'>
+                <Overview />
+              </CardContent>
+            </Card>
+            <Card className='col-span-3'>
+              <CardHeader>
+                <CardTitle>Recent Sales</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RecentSales />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )
+    }
+    ```
+  </Step>
+
+  <Step title="Data Tables">
+    Check out the Users or Tasks pages to see the powerful data table implementation.
+    
+    Located at `src/features/users/index.tsx` and `src/features/tasks/index.tsx`, these tables feature:
+    - Column sorting and filtering
+    - Row selection and bulk actions
+    - Pagination
+    - Search functionality
+    - CRUD operations via dialogs and drawers
+    
+    <Info>
+      The data tables are built with TanStack Table and can be easily customized for your own data models.
+    </Info>
+  </Step>
+
+  <Step title="Theme System">
+    The dashboard supports light/dark mode and RTL languages out of the box.
+    
+    Theme configuration is managed through context providers in `src/main.tsx`:
+    
+    ```typescript src/main.tsx
+    root.render(
+      <StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <FontProvider>
+              <DirectionProvider>
+                <RouterProvider router={router} />
+              </DirectionProvider>
+            </FontProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </StrictMode>
+    )
+    ```
+    
+    Users can toggle themes through the Settings → Appearance page.
+  </Step>
+
+  <Step title="Routing with TanStack Router">
+    Routes are file-based and located in `src/routes/`.
+    
+    The router is configured with automatic code splitting:
+    
+    ```typescript vite.config.ts
+    tanstackRouter({
+      target: 'react',
+      autoCodeSplitting: true,
+    })
+    ```
+    
+    Example route structure:
+    
+    ```plaintext
+    routes/
+    ├── __root.tsx              # Root layout
+    ├── _authenticated/         # Protected routes
+    │   ├── route.tsx          # Authenticated layout
+    │   ├── index.tsx          # Dashboard (home)
+    │   ├── users/
+    │   │   └── index.tsx      # Users page
+    │   └── tasks/
+    │       └── index.tsx      # Tasks page
+    └── (auth)/                # Auth routes
+        ├── sign-in.tsx
+        └── sign-up.tsx
+    ```
+  </Step>
+</Steps>
+
+## Customizing the Dashboard
+
+### 1. Update Sidebar Navigation
+
+Edit `src/components/app-sidebar.tsx` to customize navigation items:
+
+```typescript src/components/app-sidebar.tsx
+const navItems = [
+  {
+    title: 'Dashboard',
+    url: '/',
+    icon: LayoutGrid,
+  },
+  {
+    title: 'Users',
+    url: '/users',
+    icon: Users,
+  },
+  // Add your own navigation items
+  {
+    title: 'Products',
+    url: '/products',
+    icon: Package,
+  },
+]
+```
+
+### 2. Customize Theme Colors
+
+Theme colors are defined using CSS variables in `src/styles/theme.css`:
+
+```css src/styles/theme.css
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    /* ... more theme variables */
+  }
+  
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    /* ... dark theme variables */
+  }
+}
+```
+
+### 3. Add New UI Components
+
+Shadcn Admin uses Shadcn UI. Add new components using the CLI:
+
+```bash
+npx shadcn@latest add [component-name]
+```
+
+Example:
+
+```bash
+npx shadcn@latest add badge
+```
+
+<Warning>
+  Some components are customized for RTL support. Check the [component customizations list](/introduction#component-customizations) before updating.
+</Warning>
+
+### 4. Create a New Feature Module
+
+Follow the existing feature structure:
+
+<Steps>
+  <Step title="Create feature directory">
+    ```bash
+    mkdir -p src/features/products
+    mkdir -p src/features/products/components
+    ```
+  </Step>
+
+  <Step title="Add main component">
+    ```typescript src/features/products/index.tsx
+    export default function Products() {
+      return (
+        <div>
+          <h1>Products</h1>
+          {/* Your product management UI */}
+        </div>
+      )
+    }
+    ```
+  </Step>
+
+  <Step title="Create route">
+    ```typescript src/routes/_authenticated/products/index.tsx
+    import { createFileRoute } from '@tanstack/react-router'
+    import Products from '@/features/products'
+
+    export const Route = createFileRoute('/_authenticated/products/')(
+      {
+        component: Products,
+      }
+    )
+    ```
+  </Step>
+
+  <Step title="Update navigation">
+    Add the route to your sidebar navigation (see step 1 above).
+  </Step>
+</Steps>
+
+## Working with Forms
+
+Shadcn Admin uses React Hook Form with Zod validation. Here's a quick example:
+
+```typescript
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+
+const formSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
+})
+
+export function MyForm() {
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+    },
+  })
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log(values)
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <Button type="submit">Submit</Button>
+      </form>
+    </Form>
+  )
+}
+```
+
+## State Management
+
+The project uses Zustand for global state. Example auth store at `src/stores/auth-store.ts`:
+
+```typescript
+import { create } from 'zustand'
+
+interface AuthStore {
+  user: User | null
+  setUser: (user: User) => void
+  logout: () => void
+}
+
+export const useAuthStore = create<AuthStore>((set) => ({
+  user: null,
+  setUser: (user) => set({ user }),
+  logout: () => set({ user: null }),
+}))
+```
+
+Use it in your components:
+
+```typescript
+import { useAuthStore } from '@/stores/auth-store'
+
+function MyComponent() {
+  const user = useAuthStore((state) => state.user)
+  const logout = useAuthStore((state) => state.logout)
+  
+  // ...
+}
+```
+
+## Data Fetching with TanStack Query
+
+The app is configured with TanStack Query in `src/main.tsx`:
+
+```typescript src/main.tsx
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: import.meta.env.PROD,
+      staleTime: 10 * 1000, // 10s
+    },
+  },
+})
+```
+
+Example query usage:
+
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import axios from 'axios'
+
+function useUsers() {
+  return useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const { data } = await axios.get('/api/users')
+      return data
+    },
+  })
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Components" icon="cube" href="/components/overview">
+    Explore all available UI components and how to use them
+  </Card>
+  <Card title="Customization" icon="palette" href="/customization/theming">
+    Learn how to customize colors, fonts, and more
+  </Card>
+  <Card title="Routing" icon="route" href="/guides/routing">
+    Learn about type-safe routing with TanStack Router
+  </Card>
+  <Card title="Data Tables" icon="table" href="/components/data-table">
+    Build powerful data tables with sorting and filtering
+  </Card>
+</CardGroup>
+
+## Tips for Success
+
+<AccordionGroup>
+  <Accordion title="Use TypeScript">
+    Take advantage of full type safety. The project includes types for TanStack Router, ensuring type-safe navigation and route parameters.
+  </Accordion>
+
+  <Accordion title="Leverage Path Aliases">
+    Use `@/` imports instead of relative paths:
+    ```typescript
+    // Good
+    import { Button } from '@/components/ui/button'
+    
+    // Avoid
+    import { Button } from '../../../components/ui/button'
+    ```
+  </Accordion>
+
+  <Accordion title="Follow the Feature Structure">
+    Keep related components, hooks, and utilities within their feature directories for better organization and maintainability.
+  </Accordion>
+
+  <Accordion title="Check Existing Components First">
+    Before creating new components, browse `src/components/ui/` and `src/components/` to see what's already available.
+  </Accordion>
+</AccordionGroup>

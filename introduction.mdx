@@ -1,0 +1,118 @@
+---
+title: Introduction
+description: A modern admin dashboard UI built with Shadcn UI, Vite, and TanStack Router
+---
+
+# Welcome to Shadcn Admin
+
+Shadcn Admin is a production-ready admin dashboard UI crafted with **Shadcn UI** and **Vite**. Built with responsiveness and accessibility in mind, it provides a comprehensive collection of reusable components and pre-built page templates for your next admin dashboard project.
+
+<Note>
+  While this project showcases a complete admin dashboard UI, it's designed as a reference implementation rather than a starter template. You can clone and customize it to fit your specific needs.
+</Note>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="30+ UI Components" icon="cube">
+    Customized Shadcn UI components optimized for admin dashboards with enhanced RTL support
+  </Card>
+  <Card title="Light/Dark Mode" icon="moon">
+    Built-in theme switching with seamless transitions and persistent preferences
+  </Card>
+  <Card title="Responsive Design" icon="mobile">
+    Mobile-first approach ensuring optimal experience across all device sizes
+  </Card>
+  <Card title="Global Search" icon="search">
+    Command palette for quick navigation and actions throughout the dashboard
+  </Card>
+  <Card title="RTL Support" icon="language">
+    First-class support for right-to-left languages with customized components
+  </Card>
+  <Card title="10+ Pre-built Pages" icon="file">
+    Ready-to-use pages including dashboard, users, tasks, settings, and error pages
+  </Card>
+</CardGroup>
+
+## Tech Stack
+
+Shadcn Admin is built on a modern, performant stack:
+
+- **UI Framework:** [Shadcn UI](https://ui.shadcn.com) - TailwindCSS + RadixUI primitives
+- **Build Tool:** [Vite](https://vitejs.dev/) - Lightning-fast build and HMR
+- **Routing:** [TanStack Router](https://tanstack.com/router/latest) - Type-safe routing with built-in code splitting
+- **Type Safety:** [TypeScript](https://www.typescriptlang.org/) - Full type coverage
+- **State Management:** [Zustand](https://zustand-demo.pmnd.rs/) - Lightweight state management
+- **Data Fetching:** [TanStack Query](https://tanstack.com/query/latest) - Powerful async state management
+- **Form Handling:** [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/) - Type-safe form validation
+- **Icons:** [Lucide Icons](https://lucide.dev/icons/) & [Tabler Icons](https://tabler.io/icons)
+- **Code Quality:** [ESLint](https://eslint.org/) & [Prettier](https://prettier.io/)
+
+## Component Customizations
+
+<Warning>
+  Some Shadcn UI components have been customized for enhanced RTL support and other improvements. If you update components via the Shadcn CLI, you may need to manually merge changes.
+</Warning>
+
+### Modified Components
+
+These components have general updates beyond RTL support:
+
+- `scroll-area`
+- `sonner`
+- `separator`
+
+### RTL-Enhanced Components
+
+These components have specific modifications for right-to-left language support:
+
+- `alert-dialog`, `calendar`, `command`, `dialog`
+- `dropdown-menu`, `select`, `table`, `sheet`
+- `sidebar`, `switch`
+
+<Info>
+  If you don't require RTL support, you can safely update RTL-enhanced components using the Shadcn CLI. All other components are standard and can be updated without concerns.
+</Info>
+
+## Pre-built Features
+
+Shadcn Admin includes several complete feature modules:
+
+- **Dashboard** - Analytics charts, recent activity, and key metrics
+- **User Management** - CRUD operations with data tables and filters
+- **Task Management** - Kanban-style task tracking with advanced filtering
+- **Settings** - Account, appearance, notifications, and display preferences
+- **Authentication** - Sign-in, sign-up, forgot password, and OTP pages
+- **Error Pages** - 401, 403, 404, 500, 503 error templates
+- **Chats** - Messaging interface
+- **Help Center** - Support and documentation layout
+
+## Project Structure
+
+```plaintext
+shadcn-admin/
+├── src/
+│   ├── components/     # Reusable UI components
+│   │   └── ui/        # Shadcn UI components
+│   ├── features/      # Feature modules (dashboard, users, tasks, etc.)
+│   ├── routes/        # TanStack Router route definitions
+│   ├── hooks/         # Custom React hooks
+│   ├── lib/           # Utility functions and helpers
+│   ├── stores/        # Zustand state stores
+│   ├── context/       # React context providers
+│   ├── assets/        # Static assets
+│   └── styles/        # Global styles and theme
+├── public/            # Public assets
+└── package.json
+```
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Set up your development environment and install dependencies
+  </Card>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get your dashboard running in minutes
+  </Card>
+</CardGroup>

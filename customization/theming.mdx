@@ -1,0 +1,259 @@
+---
+title: Theming
+description: Customize colors, themes, and visual appearance in Shadcn Admin
+---
+
+Shadcn Admin provides a flexible theming system built on CSS variables and Tailwind CSS, supporting light mode, dark mode, and system preferences.
+
+## Theme Provider
+
+The application uses a `ThemeProvider` context to manage theme state across the application.
+
+### Setup
+
+Wrap your application with the `ThemeProvider` in your main entry point:
+
+```tsx src/main.tsx
+import { ThemeProvider } from './context/theme-provider'
+
+root.render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <FontProvider>
+          <DirectionProvider>
+            <RouterProvider router={router} />
+          </DirectionProvider>
+        </FontProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </StrictMode>
+)
+```
+
+### Using the Theme Hook
+
+Access and control theme settings using the `useTheme` hook:
+
+```tsx
+import { useTheme } from '@/context/theme-provider'
+
+function ThemeToggle() {
+  const { theme, setTheme, resolvedTheme } = useTheme()
+  
+  return (
+    <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+      Current: {resolvedTheme}
+    </button>
+  )
+}
+```
+
+## Theme API
+
+The `useTheme` hook provides the following properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `theme` | `'light' \| 'dark' \| 'system'` | Current theme setting |
+| `resolvedTheme` | `'light' \| 'dark'` | Actual theme applied (resolves 'system') |
+| `setTheme` | `(theme) => void` | Update the theme |
+| `resetTheme` | `() => void` | Reset to default theme |
+| `defaultTheme` | `Theme` | Default theme value (`'system'`) |
+
+## Color Customization
+
+Shadcn Admin uses CSS variables for theming, defined in `src/styles/theme.css`:
+
+<CodeGroup>
+
+```css Light Mode Colors
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.129 0.042 264.695);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.129 0.042 264.695);
+  --primary: oklch(0.208 0.042 265.755);
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  --secondary: oklch(0.968 0.007 247.896);
+  --secondary-foreground: oklch(0.208 0.042 265.755);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.929 0.013 255.508);
+  --input: oklch(0.929 0.013 255.508);
+  --ring: oklch(0.704 0.04 256.788);
+}
+```
+
+```css Dark Mode Colors
+.dark {
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.14 0.04 259.21);
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --secondary: oklch(0.279 0.041 260.031);
+  --muted: oklch(0.279 0.041 260.031);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+}
+```
+
+</CodeGroup>
+
+### Sidebar Colors
+
+Custom sidebar color tokens that inherit from base theme:
+
+```css src/styles/theme.css
+:root {
+  --sidebar: var(--background);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+}
+```
+
+## How It Works
+
+<Steps>
+
+<Step title="Theme Selection">
+Users can choose between three theme options:
+- **System** - Follows OS preference (default)
+- **Light** - Always light mode
+- **Dark** - Always dark mode
+</Step>
+
+<Step title="Theme Storage">
+The selected theme is persisted in cookies with a 1-year expiration:
+
+```tsx src/context/theme-provider.tsx
+const THEME_COOKIE_NAME = 'vite-ui-theme'
+const THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365 // 1 year
+
+const setTheme = (theme: Theme) => {
+  setCookie(storageKey, theme, THEME_COOKIE_MAX_AGE)
+  _setTheme(theme)
+}
+```
+</Step>
+
+<Step title="System Theme Detection">
+When theme is set to 'system', the provider listens to OS preference changes:
+
+```tsx src/context/theme-provider.tsx
+const resolvedTheme = useMemo((): ResolvedTheme => {
+  if (theme === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light'
+  }
+  return theme as ResolvedTheme
+}, [theme])
+```
+</Step>
+
+<Step title="CSS Class Application">
+The resolved theme is applied as a class to the root element:
+
+```tsx src/context/theme-provider.tsx
+const applyTheme = (currentResolvedTheme: ResolvedTheme) => {
+  root.classList.remove('light', 'dark')
+  root.classList.add(currentResolvedTheme)
+}
+```
+</Step>
+
+</Steps>
+
+## Chart Colors
+
+Shadcn Admin includes predefined chart colors for data visualization:
+
+```css
+:root {
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+}
+
+.dark {
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+}
+```
+
+<Note>
+The project uses OKLCH color space for better perceptual uniformity and easier color manipulation.
+</Note>
+
+## Customizing Colors
+
+To customize your theme colors:
+
+<Steps>
+
+<Step title="Edit CSS Variables">
+Modify the color values in `src/styles/theme.css` for both `:root` (light mode) and `.dark` (dark mode).
+</Step>
+
+<Step title="Use OKLCH Format">
+Colors are defined using OKLCH format: `oklch(lightness chroma hue)`
+- **Lightness**: 0-1 (0 = black, 1 = white)
+- **Chroma**: 0-0.4 (color intensity)
+- **Hue**: 0-360 (color angle)
+</Step>
+
+<Step title="Test Both Themes">
+Always verify your colors work well in both light and dark modes.
+</Step>
+
+</Steps>
+
+## Border Radius
+
+Customize the global border radius by modifying the `--radius` variable:
+
+```css src/styles/theme.css
+:root {
+  --radius: 0.625rem; /* 10px */
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+```
+
+## Configuration
+
+The theme configuration is specified in `components.json`:
+
+```json components.json
+{
+  "style": "new-york",
+  "tailwind": {
+    "baseColor": "slate",
+    "cssVariables": true
+  }
+}
+```
+
+<Warning>
+Changing `cssVariables` to `false` will require updating all component styles to use Tailwind color classes instead of CSS variables.
+</Warning>

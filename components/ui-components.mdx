@@ -1,0 +1,688 @@
+---
+title: UI Components
+description: Complete reference for Shadcn Admin's 30+ customizable UI components
+icon: palette
+---
+
+Shadcn Admin includes 30+ pre-built UI components located in `src/components/ui/`. All components are built with Radix UI primitives, styled with Tailwind CSS, and fully type-safe.
+
+## Button Component
+
+The Button component supports multiple variants and sizes with icon integration.
+
+### Props
+
+<ParamField path="variant" type="string" default="default">
+  Button style variant: `default`, `destructive`, `outline`, `secondary`, `ghost`, or `link`
+</ParamField>
+
+<ParamField path="size" type="string" default="default">
+  Button size: `default`, `sm`, `lg`, or `icon`
+</ParamField>
+
+<ParamField path="asChild" type="boolean" default="false">
+  Render as a child component (useful for links)
+</ParamField>
+
+### Basic Usage
+
+```tsx
+import { Button } from '@/components/ui/button'
+
+export function Example() {
+  return (
+    <div className="flex gap-2">
+      <Button variant="default">Default</Button>
+      <Button variant="destructive">Delete</Button>
+      <Button variant="outline">Cancel</Button>
+      <Button variant="ghost">Ghost</Button>
+      <Button variant="link">Link</Button>
+    </div>
+  )
+}
+```
+
+### With Icons
+
+```tsx
+import { Plus, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+
+export function ButtonWithIcon() {
+  return (
+    <div className="flex gap-2">
+      <Button>
+        <Plus />
+        Add User
+      </Button>
+      <Button variant="destructive" size="icon">
+        <Trash2 />
+      </Button>
+    </div>
+  )
+}
+```
+
+### Variants Reference
+
+From `src/components/ui/button.tsx:6-35`:
+
+- **default**: Primary button with solid background
+- **destructive**: Danger/delete actions with red styling
+- **outline**: Bordered button with transparent background
+- **secondary**: Secondary actions with muted styling
+- **ghost**: Minimal button with hover effect only
+- **link**: Text-only button with underline on hover
+
+## Card Component
+
+Card is a composable container component with multiple sub-components.
+
+### Sub-Components
+
+- **Card** - Main container
+- **CardHeader** - Header section with title and description
+- **CardTitle** - Card title
+- **CardDescription** - Subtitle or description
+- **CardAction** - Action button area in header
+- **CardContent** - Main content area
+- **CardFooter** - Footer section
+
+### Basic Usage
+
+```tsx
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+
+export function Example() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>User Statistics</CardTitle>
+        <CardDescription>
+          Overview of user activity for the last 30 days
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p>1,234 active users</p>
+      </CardContent>
+      <CardFooter>
+        <Button>View Details</Button>
+      </CardFooter>
+    </Card>
+  )
+}
+```
+
+### With Action Button
+
+```tsx
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardAction,
+  CardContent,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { MoreHorizontal } from 'lucide-react'
+
+export function CardWithAction() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Settings</CardTitle>
+        <CardDescription>Manage your preferences</CardDescription>
+        <CardAction>
+          <Button size="icon" variant="ghost">
+            <MoreHorizontal />
+          </Button>
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        {/* Content */}
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+## Form Components
+
+Form components integrate with React Hook Form for validation and state management.
+
+### Input
+
+Basic text input component.
+
+```tsx
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+
+export function Example() {
+  return (
+    <div className="grid gap-2">
+      <Label htmlFor="email">Email</Label>
+      <Input id="email" type="email" placeholder="name@example.com" />
+    </div>
+  )
+}
+```
+
+### Checkbox
+
+```tsx
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+
+export function Example() {
+  return (
+    <div className="flex items-center space-x-2">
+      <Checkbox id="terms" />
+      <Label htmlFor="terms">Accept terms and conditions</Label>
+    </div>
+  )
+}
+```
+
+### Select
+
+```tsx
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+
+export function Example() {
+  return (
+    <Select>
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Select role" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="admin">Admin</SelectItem>
+        <SelectItem value="user">User</SelectItem>
+        <SelectItem value="guest">Guest</SelectItem>
+      </SelectContent>
+    </Select>
+  )
+}
+```
+
+### Switch
+
+```tsx
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+
+export function Example() {
+  return (
+    <div className="flex items-center space-x-2">
+      <Switch id="notifications" />
+      <Label htmlFor="notifications">Enable notifications</Label>
+    </div>
+  )
+}
+```
+
+### Radio Group
+
+```tsx
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
+
+export function Example() {
+  return (
+    <RadioGroup defaultValue="option-one">
+      <div className="flex items-center space-x-2">
+        <RadioGroupItem value="option-one" id="option-one" />
+        <Label htmlFor="option-one">Option One</Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <RadioGroupItem value="option-two" id="option-two" />
+        <Label htmlFor="option-two">Option Two</Label>
+      </div>
+    </RadioGroup>
+  )
+}
+```
+
+## Dialog & Modal Components
+
+### Dialog
+
+```tsx
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+
+export function Example() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button>Open Dialog</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Are you sure?</DialogTitle>
+          <DialogDescription>
+            This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        {/* Dialog content */}
+      </DialogContent>
+    </Dialog>
+  )
+}
+```
+
+### Sheet
+
+Side panel overlay component.
+
+```tsx
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+
+export function Example() {
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="outline">Open</Button>
+      </SheetTrigger>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Settings</SheetTitle>
+          <SheetDescription>
+            Configure your preferences here.
+          </SheetDescription>
+        </SheetHeader>
+        {/* Sheet content */}
+      </SheetContent>
+    </Sheet>
+  )
+}
+```
+
+### Alert Dialog
+
+```tsx
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+
+export function Example() {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="destructive">Delete</Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction>Continue</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+```
+
+## Navigation Components
+
+### Dropdown Menu
+
+```tsx
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button'
+import { MoreHorizontal } from 'lucide-react'
+
+export function Example() {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <MoreHorizontal />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>Edit</DropdownMenuItem>
+        <DropdownMenuItem>Duplicate</DropdownMenuItem>
+        <DropdownMenuItem className="text-destructive">
+          Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+```
+
+### Tabs
+
+```tsx
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+export function Example() {
+  return (
+    <Tabs defaultValue="account">
+      <TabsList>
+        <TabsTrigger value="account">Account</TabsTrigger>
+        <TabsTrigger value="password">Password</TabsTrigger>
+        <TabsTrigger value="notifications">Notifications</TabsTrigger>
+      </TabsList>
+      <TabsContent value="account">
+        Account settings content
+      </TabsContent>
+      <TabsContent value="password">
+        Password settings content
+      </TabsContent>
+      <TabsContent value="notifications">
+        Notification settings content
+      </TabsContent>
+    </Tabs>
+  )
+}
+```
+
+### Popover
+
+```tsx
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Button } from '@/components/ui/button'
+
+export function Example() {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline">Open popover</Button>
+      </PopoverTrigger>
+      <PopoverContent>
+        <div className="grid gap-4">
+          <h4 className="font-medium">Settings</h4>
+          <p className="text-sm text-muted-foreground">
+            Configure your preferences
+          </p>
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+```
+
+## Feedback Components
+
+### Alert
+
+```tsx
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Info } from 'lucide-react'
+
+export function Example() {
+  return (
+    <Alert>
+      <Info className="h-4 w-4" />
+      <AlertTitle>Heads up!</AlertTitle>
+      <AlertDescription>
+        You can add components to your app using the cli.
+      </AlertDescription>
+    </Alert>
+  )
+}
+```
+
+### Badge
+
+```tsx
+import { Badge } from '@/components/ui/badge'
+
+export function Example() {
+  return (
+    <div className="flex gap-2">
+      <Badge>Default</Badge>
+      <Badge variant="secondary">Secondary</Badge>
+      <Badge variant="destructive">Destructive</Badge>
+      <Badge variant="outline">Outline</Badge>
+    </div>
+  )
+}
+```
+
+### Toast (Sonner)
+
+```tsx
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+
+export function Example() {
+  return (
+    <Button
+      onClick={() => {
+        toast.success('Event has been created')
+      }}
+    >
+      Show Toast
+    </Button>
+  )
+}
+```
+
+### Skeleton
+
+```tsx
+import { Skeleton } from '@/components/ui/skeleton'
+
+export function Example() {
+  return (
+    <div className="flex items-center space-x-4">
+      <Skeleton className="h-12 w-12 rounded-full" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[250px]" />
+        <Skeleton className="h-4 w-[200px]" />
+      </div>
+    </div>
+  )
+}
+```
+
+## Custom Components
+
+### PasswordInput
+
+Password input with show/hide toggle from `src/components/password-input.tsx`.
+
+```tsx
+import { PasswordInput } from '@/components/password-input'
+import { Label } from '@/components/ui/label'
+
+export function Example() {
+  return (
+    <div className="grid gap-2">
+      <Label htmlFor="password">Password</Label>
+      <PasswordInput id="password" placeholder="Enter your password" />
+    </div>
+  )
+}
+```
+
+### DatePicker
+
+Calendar-based date picker from `src/components/date-picker.tsx`.
+
+<ParamField path="selected" type="Date | undefined" required>
+  Currently selected date
+</ParamField>
+
+<ParamField path="onSelect" type="(date: Date | undefined) => void" required>
+  Callback when date is selected
+</ParamField>
+
+<ParamField path="placeholder" type="string" default="Pick a date">
+  Placeholder text when no date is selected
+</ParamField>
+
+```tsx
+import { useState } from 'react'
+import { DatePicker } from '@/components/date-picker'
+
+export function Example() {
+  const [date, setDate] = useState<Date | undefined>()
+
+  return (
+    <DatePicker
+      selected={date}
+      onSelect={setDate}
+      placeholder="Select a date"
+    />
+  )
+}
+```
+
+## Table Components
+
+Basic table components for displaying data.
+
+```tsx
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+
+export function Example() {
+  return (
+    <Table>
+      <TableCaption>A list of your recent invoices.</TableCaption>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Invoice</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Amount</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow>
+          <TableCell>INV001</TableCell>
+          <TableCell>Paid</TableCell>
+          <TableCell>$250.00</TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  )
+}
+```
+
+For advanced table features with sorting, filtering, and pagination, see [Data Table](/components/data-table).
+
+## Complete Component List
+
+All available UI components in `src/components/ui/`:
+
+<Accordion title="View All Components">
+  1. **alert-dialog.tsx** - Confirmation dialogs
+  2. **alert.tsx** - Alert notifications
+  3. **avatar.tsx** - User avatars
+  4. **badge.tsx** - Status badges
+  5. **button.tsx** - Buttons
+  6. **calendar.tsx** - Date calendar
+  7. **card.tsx** - Card containers
+  8. **checkbox.tsx** - Checkboxes
+  9. **collapsible.tsx** - Collapsible sections
+  10. **command.tsx** - Command palette
+  11. **dialog.tsx** - Modal dialogs
+  12. **dropdown-menu.tsx** - Dropdown menus
+  13. **form.tsx** - Form components
+  14. **input-otp.tsx** - OTP input
+  15. **input.tsx** - Text inputs
+  16. **label.tsx** - Form labels
+  17. **popover.tsx** - Popovers
+  18. **radio-group.tsx** - Radio buttons
+  19. **scroll-area.tsx** - Scrollable areas
+  20. **select.tsx** - Select dropdowns
+  21. **separator.tsx** - Dividers
+  22. **sheet.tsx** - Side panels
+  23. **sidebar.tsx** - Sidebar navigation
+  24. **skeleton.tsx** - Loading skeletons
+  25. **sonner.tsx** - Toast notifications
+  26. **switch.tsx** - Toggle switches
+  27. **table.tsx** - Tables
+  28. **tabs.tsx** - Tab navigation
+  29. **textarea.tsx** - Text areas
+  30. **tooltip.tsx** - Tooltips
+</Accordion>
+
+## Styling & Theming
+
+All components support:
+
+- **className prop** - Add custom Tailwind classes
+- **Theme variables** - Customize colors via CSS variables
+- **Dark mode** - Automatic dark mode support
+- **Data attributes** - Use `data-slot` for consistent styling
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Data Table" icon="table" href="/components/data-table">
+    Build tables with sorting and filtering
+  </Card>
+  
+  <Card title="Forms" icon="file-input" href="/components/forms">
+    Create validated forms with React Hook Form
+  </Card>
+</CardGroup>

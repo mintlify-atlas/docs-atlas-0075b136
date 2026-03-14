@@ -1,0 +1,194 @@
+---
+title: Components Overview
+description: A comprehensive overview of Shadcn Admin's component architecture and available components
+icon: blocks
+---
+
+Shadcn Admin provides a rich collection of pre-built, customizable components designed for building modern admin dashboards. All components are built with React, TypeScript, and Tailwind CSS.
+
+## Component Categories
+
+The component library is organized into four main categories:
+
+<CardGroup cols={2}>
+  <Card title="UI Components" icon="palette" href="/components/ui-components">
+    30+ customizable base UI components including buttons, cards, forms, and more
+  </Card>
+  
+  <Card title="Data Table" icon="table" href="/components/data-table">
+    Powerful data table system built on TanStack Table with sorting, filtering, and pagination
+  </Card>
+  
+  <Card title="Sidebar Navigation" icon="bars" href="/components/sidebar">
+    Flexible sidebar components including AppSidebar, NavGroup, and TeamSwitcher
+  </Card>
+  
+  <Card title="Form Components" icon="file-input" href="/components/forms">
+    React Hook Form integration with Zod validation for type-safe forms
+  </Card>
+</CardGroup>
+
+## Architecture
+
+### Component Location
+
+Components are organized in the following structure:
+
+```
+src/components/
+├── ui/                    # Base UI components (30+ components)
+├── data-table/            # Data table components
+├── layout/                # Layout and navigation components
+└── [feature-components]   # Feature-specific components
+```
+
+### Design Principles
+
+All components follow these principles:
+
+- **Type-Safe**: Written in TypeScript with full type definitions
+- **Composable**: Built with composition patterns for maximum flexibility
+- **Accessible**: ARIA-compliant with keyboard navigation support
+- **Customizable**: Styling via Tailwind CSS with theme support
+- **Data Attributes**: Using `data-slot` attributes for consistent styling
+
+## Base UI Components
+
+The `src/components/ui/` directory contains 30+ components including:
+
+<Tabs>
+  <Tab title="Form Controls">
+    - **Button** - Multiple variants and sizes
+    - **Input** - Text input with validation states
+    - **Checkbox** - Custom checkbox component
+    - **Radio Group** - Radio button groups
+    - **Select** - Custom select dropdown
+    - **Textarea** - Multi-line text input
+    - **Switch** - Toggle switch component
+  </Tab>
+  
+  <Tab title="Layout">
+    - **Card** - Container with header, content, and footer
+    - **Separator** - Visual divider
+    - **Sheet** - Side panel overlay
+    - **Dialog** - Modal dialog
+    - **Popover** - Floating content container
+    - **Tooltip** - Contextual information overlay
+  </Tab>
+  
+  <Tab title="Navigation">
+    - **Sidebar** - Collapsible navigation sidebar
+    - **Tabs** - Tab navigation component
+    - **Dropdown Menu** - Context menus and actions
+    - **Command** - Command palette component
+  </Tab>
+  
+  <Tab title="Feedback">
+    - **Alert** - Notification messages
+    - **Badge** - Status indicators
+    - **Skeleton** - Loading placeholders
+    - **Sonner** - Toast notifications
+  </Tab>
+</Tabs>
+
+## Specialized Components
+
+### Data Display
+
+- **Table** - Basic table component with styling
+- **Calendar** - Date picker calendar
+- **Avatar** - User profile images
+- **Scroll Area** - Custom scrollable containers
+
+### Custom Components
+
+Beyond the base UI components, Shadcn Admin includes:
+
+- **DatePicker** - Calendar-based date selection
+- **PasswordInput** - Password field with show/hide toggle
+- **LongText** - Text truncation with expand functionality
+- **ConfigDrawer** - Settings and configuration panel
+- **ProfileDropdown** - User profile menu
+- **ThemeSwitch** - Light/dark mode toggle
+- **Search** - Global search component
+
+## Data Table System
+
+The data table components provide:
+
+- **Pagination** - Page navigation with customizable rows per page
+- **Column Header** - Sortable column headers
+- **Faceted Filter** - Multi-select filtering
+- **View Options** - Column visibility toggle
+- **Toolbar** - Search and filter controls
+- **Bulk Actions** - Actions on selected rows
+
+See [Data Table](/components/data-table) for detailed documentation.
+
+## Layout Components
+
+Layout components handle navigation and page structure:
+
+- **AppSidebar** - Main application sidebar
+- **NavGroup** - Grouped navigation items
+- **TeamSwitcher** - Multi-team dropdown selector
+- **NavUser** - User profile in sidebar
+- **Header** - Page header component
+- **Main** - Main content wrapper
+
+See [Sidebar](/components/sidebar) for detailed documentation.
+
+## Form Integration
+
+Form components integrate React Hook Form with Zod validation:
+
+- **Form** - Form provider wrapper
+- **FormField** - Field wrapper with validation
+- **FormItem** - Field layout container
+- **FormLabel** - Accessible form labels
+- **FormControl** - Input control wrapper
+- **FormMessage** - Validation error messages
+
+See [Forms](/components/forms) for detailed documentation.
+
+## Usage Pattern
+
+All components follow a consistent import and usage pattern:
+
+```tsx
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+
+export function Example() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Example Card</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Button>Click Me</Button>
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Explore UI Components" icon="palette" href="/components/ui-components">
+    Browse all 30+ UI components with examples
+  </Card>
+  
+  <Card title="Build a Data Table" icon="table" href="/components/data-table">
+    Learn to implement tables with sorting and filtering
+  </Card>
+  
+  <Card title="Customize Sidebar" icon="bars" href="/components/sidebar">
+    Configure navigation and layout
+  </Card>
+  
+  <Card title="Create Forms" icon="file-input" href="/components/forms">
+    Build validated forms with React Hook Form
+  </Card>
+</CardGroup>

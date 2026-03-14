@@ -1,0 +1,523 @@
+---
+title: Data Fetching
+description: Learn how to fetch and manage server data using TanStack Query in Shadcn Admin
+---
+
+## Overview
+
+Shadcn Admin uses [TanStack Query](https://tanstack.com/query) (formerly React Query) for powerful asynchronous state management. It handles caching, background updates, and error handling automatically.
+
+## Why TanStack Query?
+
+<CardGroup cols={2}>
+  <Card title="Smart Caching" icon="database">
+    Automatic caching with configurable stale times and background refetching.
+  </Card>
+  
+  <Card title="Optimistic Updates" icon="zap">
+    Update UI instantly while syncing with the server in the background.
+  </Card>
+  
+  <Card title="Error Handling" icon="shield-alert">
+    Centralized error handling with automatic retries and fallbacks.
+  </Card>
+  
+  <Card title="DevTools" icon="bug">
+    Built-in DevTools for debugging queries and cache state.
+  </Card>
+</CardGroup>
+
+## Setup
+
+TanStack Query is configured in `src/main.tsx` with global defaults:
+
+```tsx src/main.tsx
+import { 
+  QueryCache, 
+  QueryClient, 
+  QueryClientProvider 
+} from '@tanstack/react-query'
+import { AxiosError } from 'axios'
+import { toast } from 'sonner'
+import { useAuthStore } from '@/stores/auth-store'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        if (failureCount >= 0 && import.meta.env.DEV) return false
+        if (failureCount > 3 && import.meta.env.PROD) return false
+
+        return !(
+          error instanceof AxiosError &&
+          [401, 403].includes(error.response?.status ?? 0)
+        )
+      },
+      refetchOnWindowFocus: import.meta.env.PROD,
+      staleTime: 10 * 1000, // 10 seconds
+    },
+    mutations: {
+      onError: (error) => {
+        handleServerError(error)
+
+        if (error instanceof AxiosError) {
+          if (error.response?.status === 304) {
+            toast.error('Content not modified!')
+          }
+        }
+      },
+    },
+  },
+  queryCache: new QueryCache({
+    onError: (error) => {
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 401) {
+          toast.error('Session expired!')
+          useAuthStore.getState().auth.reset()
+          router.navigate({ to: '/sign-in' })
+        }
+        if (error.response?.status === 500) {
+          toast.error('Internal Server Error!')
+          if (import.meta.env.PROD) {
+            router.navigate({ to: '/500' })
+          }
+        }
+      }
+    },
+  }),
+})
+```
+
+### Provider Setup
+
+Wrap your app with `QueryClientProvider`:
+
+```tsx src/main.tsx
+import { QueryClientProvider } from '@tanstack/react-query'
+
+root.render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <FontProvider>
+          <DirectionProvider>
+            <RouterProvider router={router} />
+          </DirectionProvider>
+        </FontProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </StrictMode>
+)
+```
+
+## Router Integration
+
+The QueryClient is passed through router context for use in loaders:
+
+```tsx src/main.tsx
+import { type QueryClient } from '@tanstack/react-query'
+import { createRouter } from '@tanstack/react-router'
+
+const router = createRouter({
+  routeTree,
+  context: { queryClient },
+  defaultPreload: 'intent',
+})
+
+// Type-safe context
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router
+  }
+}
+```
+
+Define context type in root route:
+
+```tsx src/routes/__root.tsx
+import { createRootRouteWithContext } from '@tanstack/react-router'
+import { type QueryClient } from '@tanstack/react-query'
+
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient
+}>()({
+  component: RootComponent,
+})
+```
+
+## Fetching Data with useQuery
+
+While Shadcn Admin uses static data for demos, here's how to implement real data fetching:
+
+<CodeGroup>
+```tsx Basic Query
+import { useQuery } from '@tanstack/react-query'
+import axios from 'axios'
+
+function TasksList() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: async () => {
+      const response = await axios.get('/api/tasks')
+      return response.data
+    },
+  })
+
+  if (isLoading) return <Loader2 className='animate-spin' />
+  if (error) return <div>Error loading tasks</div>
+
+  return (
+    <TasksTable data={data} />
+  )
+}
+```
+
+```tsx With Parameters
+import { useQuery } from '@tanstack/react-query'
+import { Route } from '@tanstack/react-router'
+
+function TasksPage() {
+  const search = Route.useSearch() // Get search params
+  
+  const { data } = useQuery({
+    queryKey: ['tasks', search], // Include params in key
+    queryFn: async () => {
+      const response = await axios.get('/api/tasks', {
+        params: {
+          page: search.page,
+          status: search.status,
+          priority: search.priority,
+        },
+      })
+      return response.data
+    },
+  })
+
+  return <TasksTable data={data} />
+}
+```
+
+```tsx With Stale Time
+import { useQuery } from '@tanstack/react-query'
+
+function UserProfile() {
+  const { data } = useQuery({
+    queryKey: ['user', 'profile'],
+    queryFn: fetchUserProfile,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+  })
+
+  return <ProfileView user={data} />
+}
+```
+</CodeGroup>
+
+## Mutations
+
+Update server data with `useMutation`:
+
+<CodeGroup>
+```tsx Create
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+
+function CreateTaskDialog() {
+  const queryClient = useQueryClient()
+  
+  const createTask = useMutation({
+    mutationFn: async (newTask: Task) => {
+      const response = await axios.post('/api/tasks', newTask)
+      return response.data
+    },
+    onSuccess: () => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      toast.success('Task created successfully!')
+    },
+    onError: (error) => {
+      toast.error('Failed to create task')
+    },
+  })
+
+  const handleSubmit = (data: Task) => {
+    createTask.mutate(data)
+  }
+
+  return <TaskForm onSubmit={handleSubmit} />
+}
+```
+
+```tsx Update
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+
+function UpdateTaskDialog({ task }: { task: Task }) {
+  const queryClient = useQueryClient()
+  
+  const updateTask = useMutation({
+    mutationFn: async (updatedTask: Task) => {
+      const response = await axios.put(
+        `/api/tasks/${updatedTask.id}`,
+        updatedTask
+      )
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      toast.success('Task updated!')
+    },
+  })
+
+  return <TaskForm task={task} onSubmit={updateTask.mutate} />
+}
+```
+
+```tsx Delete
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+
+function DeleteTaskDialog({ taskId }: { taskId: string }) {
+  const queryClient = useQueryClient()
+  
+  const deleteTask = useMutation({
+    mutationFn: async (id: string) => {
+      await axios.delete(`/api/tasks/${id}`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      toast.success('Task deleted')
+    },
+  })
+
+  return (
+    <AlertDialog>
+      <AlertDialogAction onClick={() => deleteTask.mutate(taskId)}>
+        Delete
+      </AlertDialogAction>
+    </AlertDialog>
+  )
+}
+```
+</CodeGroup>
+
+## Optimistic Updates
+
+Update UI before server responds:
+
+```tsx
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+
+function ToggleTaskStatus({ task }: { task: Task }) {
+  const queryClient = useQueryClient()
+  
+  const toggleStatus = useMutation({
+    mutationFn: async (taskId: string) => {
+      return axios.patch(`/api/tasks/${taskId}/toggle`)
+    },
+    // Optimistically update cache
+    onMutate: async (taskId) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['tasks'] })
+      
+      // Snapshot previous value
+      const previousTasks = queryClient.getQueryData(['tasks'])
+      
+      // Optimistically update
+      queryClient.setQueryData(['tasks'], (old: Task[]) => 
+        old.map(t => 
+          t.id === taskId 
+            ? { ...t, status: t.status === 'done' ? 'todo' : 'done' }
+            : t
+        )
+      )
+      
+      return { previousTasks }
+    },
+    // Rollback on error
+    onError: (err, taskId, context) => {
+      queryClient.setQueryData(['tasks'], context?.previousTasks)
+      toast.error('Failed to update task')
+    },
+    // Refetch after success
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+    },
+  })
+
+  return (
+    <Switch
+      checked={task.status === 'done'}
+      onCheckedChange={() => toggleStatus.mutate(task.id)}
+    />
+  )
+}
+```
+
+## Prefetching with Route Loaders
+
+Prefetch data before route navigation:
+
+```tsx src/routes/_authenticated/tasks/index.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import axios from 'axios'
+
+export const Route = createFileRoute('/_authenticated/tasks/')({
+  // Prefetch data
+  loader: ({ context }) => {
+    return context.queryClient.ensureQueryData({
+      queryKey: ['tasks'],
+      queryFn: async () => {
+        const response = await axios.get('/api/tasks')
+        return response.data
+      },
+    })
+  },
+  component: Tasks,
+})
+```
+
+Then use the prefetched data:
+
+```tsx
+function Tasks() {
+  // Data is already prefetched, no loading state!
+  const { data } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: fetchTasks,
+  })
+
+  return <TasksTable data={data} />
+}
+```
+
+## Error Handling
+
+Global error handling is configured in the QueryCache:
+
+```tsx src/main.tsx
+queryCache: new QueryCache({
+  onError: (error) => {
+    if (error instanceof AxiosError) {
+      // Handle 401 - Session expired
+      if (error.response?.status === 401) {
+        toast.error('Session expired!')
+        useAuthStore.getState().auth.reset()
+        router.navigate({ to: '/sign-in' })
+      }
+      
+      // Handle 500 - Server error
+      if (error.response?.status === 500) {
+        toast.error('Internal Server Error!')
+        if (import.meta.env.PROD) {
+          router.navigate({ to: '/500' })
+        }
+      }
+    }
+  },
+})
+```
+
+## Query Keys Best Practices
+
+Structure query keys hierarchically:
+
+```typescript
+// ✅ Good - Hierarchical structure
+const queryKeys = {
+  tasks: ['tasks'],
+  tasksList: (filters: Filters) => ['tasks', 'list', filters],
+  tasksDetail: (id: string) => ['tasks', 'detail', id],
+  users: ['users'],
+  usersList: (filters: Filters) => ['users', 'list', filters],
+  usersDetail: (id: string) => ['users', 'detail', id],
+}
+
+// Invalidate all tasks
+queryClient.invalidateQueries({ queryKey: queryKeys.tasks })
+
+// Invalidate specific task
+queryClient.invalidateQueries({ queryKey: queryKeys.tasksDetail('123') })
+```
+
+## Dependent Queries
+
+Query that depends on another:
+
+```tsx
+function TaskDetails({ taskId }: { taskId: string }) {
+  // First query - fetch task
+  const { data: task } = useQuery({
+    queryKey: ['tasks', taskId],
+    queryFn: () => fetchTask(taskId),
+  })
+
+  // Dependent query - fetch assignee
+  const { data: assignee } = useQuery({
+    queryKey: ['users', task?.assigneeId],
+    queryFn: () => fetchUser(task.assigneeId),
+    enabled: !!task?.assigneeId, // Only run if task exists
+  })
+
+  return (
+    <div>
+      <h1>{task?.title}</h1>
+      <p>Assigned to: {assignee?.name}</p>
+    </div>
+  )
+}
+```
+
+## DevTools
+
+React Query DevTools are enabled in development:
+
+```tsx src/routes/__root.tsx
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient
+}>()({
+  component: () => (
+    <>
+      <Outlet />
+      {import.meta.env.MODE === 'development' && (
+        <ReactQueryDevtools buttonPosition='bottom-left' />
+      )}
+    </>
+  ),
+})
+```
+
+<Note>
+  The DevTools panel appears in the bottom-left corner during development and shows all active queries, their cache status, and allows manual refetching.
+</Note>
+
+## Best Practices
+
+<Steps>
+  <Step title="Use Proper Query Keys">
+    Include all variables that affect the query in the key: `['tasks', filters, page]`
+  </Step>
+
+  <Step title="Set Appropriate Stale Times">
+    Configure `staleTime` based on how often data changes. User profiles might be 5 minutes, real-time data might be 0.
+  </Step>
+
+  <Step title="Handle Loading States">
+    Always show loading indicators for better UX.
+  </Step>
+
+  <Step title="Prefetch When Possible">
+    Use route loaders to prefetch data before navigation for instant page loads.
+  </Step>
+
+  <Step title="Invalidate Carefully">
+    Invalidate queries after mutations to ensure fresh data.
+  </Step>
+</Steps>
+
+## Related Resources
+
+- [TanStack Query Documentation](https://tanstack.com/query/latest)
+- [Query Keys Guide](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)
+- [Mutations Guide](https://tanstack.com/query/latest/docs/framework/react/guides/mutations)
+- [Optimistic Updates](https://tanstack.com/query/latest/docs/framework/react/guides/optimistic-updates)

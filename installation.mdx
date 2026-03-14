@@ -1,0 +1,290 @@
+---
+title: Installation
+description: Set up your development environment and install Shadcn Admin
+---
+
+# Installation
+
+This guide will help you set up Shadcn Admin on your local machine. The project uses **pnpm** as the package manager, but you can also use npm or yarn.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+<Steps>
+  <Step title="Node.js">
+    Node.js version **18.0.0** or higher is required.
+    
+    ```bash
+    node --version
+    ```
+    
+    <Info>
+      We recommend using [nvm](https://github.com/nvm-sh/nvm) or [fnm](https://github.com/Schniz/fnm) to manage Node.js versions.
+    </Info>
+  </Step>
+
+  <Step title="Package Manager">
+    Install **pnpm** (recommended) or use npm/yarn:
+    
+    ```bash
+    npm install -g pnpm
+    ```
+    
+    Verify installation:
+    
+    ```bash
+    pnpm --version
+    ```
+  </Step>
+
+  <Step title="Git">
+    Git is required to clone the repository:
+    
+    ```bash
+    git --version
+    ```
+  </Step>
+</Steps>
+
+## Installation Steps
+
+<Steps>
+  <Step title="Clone the Repository">
+    Clone the Shadcn Admin repository from GitHub:
+    
+    ```bash
+    git clone https://github.com/satnaing/shadcn-admin.git
+    ```
+    
+    Navigate to the project directory:
+    
+    ```bash
+    cd shadcn-admin
+    ```
+  </Step>
+
+  <Step title="Install Dependencies">
+    Install all required dependencies using pnpm:
+    
+    ```bash
+    pnpm install
+    ```
+    
+    <Note>
+      This will install all dependencies listed in package.json, including:
+      - React 19.2.3
+      - Vite 7.3.0
+      - TanStack Router 1.141.2
+      - TanStack Query 5.90.12
+      - And 40+ other packages
+    </Note>
+    
+    <CodeGroup>
+    ```bash pnpm
+    pnpm install
+    ```
+    
+    ```bash npm
+    npm install
+    ```
+    
+    ```bash yarn
+    yarn install
+    ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Environment Configuration (Optional)">
+    If you plan to use Clerk authentication, create a `.env` file:
+    
+    ```bash
+    cp .env.example .env
+    ```
+    
+    Add your Clerk publishable key:
+    
+    ```bash .env
+    VITE_CLERK_PUBLISHABLE_KEY=pk_test_your_key_here
+    ```
+    
+    <Warning>
+      Clerk integration is optional. The dashboard works without it, but authentication pages will require the key to function properly.
+    </Warning>
+  </Step>
+
+  <Step title="Start Development Server">
+    Launch the development server:
+    
+    ```bash
+    pnpm run dev
+    ```
+    
+    The application will be available at:
+    
+    ```
+    http://localhost:5173
+    ```
+    
+    <Info>
+      Vite's dev server includes Hot Module Replacement (HMR), so changes will reflect instantly without full page reloads.
+    </Info>
+  </Step>
+</Steps>
+
+## Available Scripts
+
+The following npm scripts are available in package.json:
+
+| Command | Description |
+|---------|-------------|
+| `pnpm run dev` | Start development server with HMR |
+| `pnpm run build` | Build production-ready application |
+| `pnpm run preview` | Preview production build locally |
+| `pnpm run lint` | Run ESLint to check code quality |
+| `pnpm run format` | Format code with Prettier |
+| `pnpm run format:check` | Check code formatting without modifying |
+| `pnpm run knip` | Detect unused files and dependencies |
+
+### Development
+
+```bash
+pnpm run dev
+```
+
+Starts the Vite development server with:
+- Hot Module Replacement (HMR)
+- Fast refresh for React components
+- TypeScript type checking
+- TanStack Router devtools
+
+### Production Build
+
+```bash
+pnpm run build
+```
+
+Creates an optimized production build:
+- TypeScript compilation and type checking
+- Vite build with code splitting
+- Minification and tree-shaking
+- Asset optimization
+
+The output will be in the `dist/` directory.
+
+### Preview Production Build
+
+```bash
+pnpm run preview
+```
+
+Serves the production build locally for testing before deployment.
+
+### Code Quality
+
+<CodeGroup>
+```bash Lint
+pnpm run lint
+```
+
+```bash Format
+pnpm run format
+```
+
+```bash Check Formatting
+pnpm run format:check
+```
+</CodeGroup>
+
+## TypeScript Configuration
+
+The project uses TypeScript with path aliases for cleaner imports:
+
+```json tsconfig.json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+```
+
+This allows you to import from `@/components/ui/button` instead of `../../components/ui/button`.
+
+## Vite Configuration
+
+The Vite configuration includes essential plugins:
+
+```typescript vite.config.ts
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react-swc'
+import tailwindcss from '@tailwindcss/vite'
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
+
+export default defineConfig({
+  plugins: [
+    tanstackRouter({
+      target: 'react',
+      autoCodeSplitting: true,
+    }),
+    react(),
+    tailwindcss(),
+  ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+})
+```
+
+### Key Plugins
+
+- **@vitejs/plugin-react-swc** - Fast React refresh using SWC compiler
+- **@tailwindcss/vite** - Tailwind CSS integration
+- **@tanstack/router-plugin** - Type-safe routing with automatic code splitting
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Port 5173 is already in use">
+    Vite will automatically try the next available port (5174, 5175, etc.). You can also specify a custom port:
+    
+    ```bash
+    pnpm run dev -- --port 3000
+    ```
+  </Accordion>
+
+  <Accordion title="Module not found errors">
+    Clear node_modules and reinstall:
+    
+    ```bash
+    rm -rf node_modules pnpm-lock.yaml
+    pnpm install
+    ```
+  </Accordion>
+
+  <Accordion title="TypeScript errors in IDE">
+    Ensure your IDE is using the workspace TypeScript version:
+    
+    - VS Code: CMD/Ctrl + Shift + P → "TypeScript: Select TypeScript Version" → "Use Workspace Version"
+    - Restart your IDE after installation
+  </Accordion>
+
+  <Accordion title="Slow HMR or build times">
+    Try clearing Vite's cache:
+    
+    ```bash
+    rm -rf node_modules/.vite
+    pnpm run dev
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<Card title="Quick Start Guide" icon="rocket" href="/quickstart">
+  Learn how to customize the dashboard and explore key features
+</Card>

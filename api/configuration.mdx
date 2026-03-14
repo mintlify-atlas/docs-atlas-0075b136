@@ -1,0 +1,297 @@
+---
+title: Configuration
+description: Configuration files and options for customizing Shadcn Admin.
+---
+
+Shadcn Admin uses several configuration files to customize the UI components, styling, and build setup.
+
+## components.json
+
+The primary configuration file for shadcn/ui components. This file controls component styling, import paths, and icon library.
+
+### Location
+
+```
+components.json
+```
+
+### Full Configuration
+
+```json
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/styles/index.css",
+    "baseColor": "slate",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  },
+  "iconLibrary": "lucide"
+}
+```
+
+### Options
+
+<ParamField path="style" type="string" default="new-york">
+  Component style variant. Options:
+  - `"new-york"`: Modern, clean design (default)
+  - `"default"`: Classic shadcn/ui style
+</ParamField>
+
+<ParamField path="rsc" type="boolean" default="false">
+  Enable React Server Components. Set to `false` for client-side apps.
+</ParamField>
+
+<ParamField path="tsx" type="boolean" default="true">
+  Use TypeScript (.tsx) for component files.
+</ParamField>
+
+<ParamField path="tailwind" type="object">
+  Tailwind CSS configuration options
+  
+  <ParamField path="config" type="string" default="">
+    Path to Tailwind config (empty string uses default location)
+  </ParamField>
+  
+  <ParamField path="css" type="string" default="src/styles/index.css">
+    Path to main CSS file with Tailwind directives
+  </ParamField>
+  
+  <ParamField path="baseColor" type="string" default="slate">
+    Base color scheme. Options: `slate`, `gray`, `zinc`, `neutral`, `stone`
+  </ParamField>
+  
+  <ParamField path="cssVariables" type="boolean" default="true">
+    Use CSS variables for theming instead of Tailwind utilities
+  </ParamField>
+  
+  <ParamField path="prefix" type="string" default="">
+    Prefix for Tailwind utility classes (e.g., `"tw-"`)
+  </ParamField>
+</ParamField>
+
+<ParamField path="aliases" type="object">
+  TypeScript/JavaScript path aliases for imports
+  
+  ```typescript
+  // Instead of: import { Button } from '../../components/ui/button'
+  // Use: import { Button } from '@/components/ui/button'
+  ```
+  
+  Default aliases:
+  - `@/components` → `src/components`
+  - `@/utils` → `src/lib/utils`
+  - `@/ui` → `src/components/ui`
+  - `@/lib` → `src/lib`
+  - `@/hooks` → `src/hooks`
+</ParamField>
+
+<ParamField path="iconLibrary" type="string" default="lucide">
+  Icon library for UI components. Currently supports `"lucide"`.
+</ParamField>
+
+---
+
+## Layout Configuration
+
+Layout settings are managed through the `LayoutProvider` context and persisted via cookies.
+
+### Variant Options
+
+Controls the sidebar layout style:
+
+<CodeGroup>
+
+```typescript Types
+type Variant = 'inset' | 'sidebar' | 'floating'
+```
+
+```tsx Usage
+import { useLayout } from '@/context/layout-provider'
+
+function App() {
+  const { variant, setVariant } = useLayout()
+  
+  // variant is one of: 'inset', 'sidebar', 'floating'
+}
+```
+
+</CodeGroup>
+
+<ParamField path="inset" type="variant">
+  Sidebar is inset within the page layout with padding (default)
+</ParamField>
+
+<ParamField path="sidebar" type="variant">
+  Full-height sidebar flush with viewport edges
+</ParamField>
+
+<ParamField path="floating" type="variant">
+  Floating sidebar with rounded corners and shadow
+</ParamField>
+
+### Collapsible Options
+
+Controls how the sidebar collapses:
+
+<CodeGroup>
+
+```typescript Types
+type Collapsible = 'offcanvas' | 'icon' | 'none'
+```
+
+```tsx Usage
+import { useLayout } from '@/context/layout-provider'
+
+function App() {
+  const { collapsible, setCollapsible } = useLayout()
+  
+  // collapsible is one of: 'offcanvas', 'icon', 'none'
+}
+```
+
+</CodeGroup>
+
+<ParamField path="icon" type="collapsible">
+  Collapses to icon-only sidebar (default)
+</ParamField>
+
+<ParamField path="offcanvas" type="collapsible">
+  Hides completely, shows as overlay when opened
+</ParamField>
+
+<ParamField path="none" type="collapsible">
+  Sidebar cannot be collapsed
+</ParamField>
+
+### Cookie Storage
+
+Layout preferences are automatically persisted:
+
+<ParamField path="layout_variant" type="cookie">
+  Stores current sidebar variant
+  - Max Age: 7 days
+  - Values: `inset` | `sidebar` | `floating`
+</ParamField>
+
+<ParamField path="layout_collapsible" type="cookie">
+  Stores current collapsible behavior
+  - Max Age: 7 days
+  - Values: `offcanvas` | `icon` | `none`
+</ParamField>
+
+---
+
+## Theme Configuration
+
+Theme is managed through CSS variables in `src/styles/index.css`.
+
+### CSS Variables
+
+Shadcn Admin uses HSL color values with CSS variables:
+
+```css
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    /* ... more variables */
+  }
+  
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    /* ... more variables */
+  }
+}
+```
+
+### Customizing Colors
+
+Modify CSS variables to customize your theme:
+
+<CodeGroup>
+
+```css Primary Color
+:root {
+  /* Change primary brand color */
+  --primary: 221 83% 53%; /* Blue */
+  --primary-foreground: 0 0% 100%; /* White */
+}
+
+.dark {
+  --primary: 221 83% 53%;
+  --primary-foreground: 0 0% 100%;
+}
+```
+
+```css Accent Color
+:root {
+  /* Change accent/hover states */
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+}
+```
+
+```css Border Radius
+:root {
+  /* Adjust component roundness */
+  --radius: 0.5rem; /* Default */
+  /* Options: 0rem (sharp), 0.3rem, 0.5rem, 0.75rem, 1rem */
+}
+```
+
+</CodeGroup>
+
+---
+
+## TypeScript Configuration
+
+Path aliases in `tsconfig.json` should match `components.json`:
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/ui/*": ["./src/components/ui/*"]
+    }
+  }
+}
+```
+
+### Vite Configuration
+
+If using Vite, ensure path aliases are also configured:
+
+```typescript
+import path from 'path'
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+})
+```

@@ -1,0 +1,345 @@
+---
+title: Hooks
+description: Custom React hooks provided by Shadcn Admin for managing state and responsive behavior.
+---
+
+Shadcn Admin provides several custom React hooks to simplify common patterns in your admin dashboard.
+
+## useTableUrlState
+
+A powerful hook for synchronizing TanStack Table state with URL search parameters. This enables shareable URLs with filters, pagination, and sorting state.
+
+### Type Signature
+
+```typescript
+function useTableUrlState(
+  params: UseTableUrlStateParams
+): UseTableUrlStateReturn
+```
+
+### Parameters
+
+<ParamField path="search" type="Record<string, unknown>" required>
+  Current URL search parameters object (typically from router)
+</ParamField>
+
+<ParamField path="navigate" type="NavigateFn" required>
+  Navigation function to update URL (typically from router)
+  
+  ```typescript
+  type NavigateFn = (opts: {
+    search: true | SearchRecord | ((prev: SearchRecord) => SearchRecord)
+    replace?: boolean
+  }) => void
+  ```
+</ParamField>
+
+<ParamField path="pagination" type="object">
+  Pagination configuration options
+  
+  <ParamField path="pageKey" type="string" default="page">
+    URL parameter key for page number
+  </ParamField>
+  
+  <ParamField path="pageSizeKey" type="string" default="pageSize">
+    URL parameter key for page size
+  </ParamField>
+  
+  <ParamField path="defaultPage" type="number" default="1">
+    Default page number
+  </ParamField>
+  
+  <ParamField path="defaultPageSize" type="number" default="10">
+    Default page size
+  </ParamField>
+</ParamField>
+
+<ParamField path="globalFilter" type="object">
+  Global filter configuration
+  
+  <ParamField path="enabled" type="boolean" default="true">
+    Enable global filtering
+  </ParamField>
+  
+  <ParamField path="key" type="string" default="filter">
+    URL parameter key for global filter
+  </ParamField>
+  
+  <ParamField path="trim" type="boolean" default="true">
+    Trim whitespace from filter value
+  </ParamField>
+</ParamField>
+
+<ParamField path="columnFilters" type="array">
+  Array of column filter configurations
+  
+  Each filter object requires:
+  - `columnId`: Column identifier
+  - `searchKey`: URL parameter key
+  - `type`: Either `'string'` or `'array'`
+  - `serialize`: Optional function to transform value before URL
+  - `deserialize`: Optional function to transform value from URL
+</ParamField>
+
+### Returns
+
+<ResponseField name="globalFilter" type="string | undefined">
+  Current global filter value
+</ResponseField>
+
+<ResponseField name="onGlobalFilterChange" type="OnChangeFn<string> | undefined">
+  Handler for global filter changes
+</ResponseField>
+
+<ResponseField name="columnFilters" type="ColumnFiltersState">
+  Current column filters array
+</ResponseField>
+
+<ResponseField name="onColumnFiltersChange" type="OnChangeFn<ColumnFiltersState>">
+  Handler for column filter changes
+</ResponseField>
+
+<ResponseField name="pagination" type="PaginationState">
+  Current pagination state with `pageIndex` and `pageSize`
+</ResponseField>
+
+<ResponseField name="onPaginationChange" type="OnChangeFn<PaginationState>">
+  Handler for pagination changes
+</ResponseField>
+
+<ResponseField name="ensurePageInRange" type="function">
+  Helper function to ensure current page is within valid range
+  
+  ```typescript
+  (pageCount: number, opts?: { resetTo?: 'first' | 'last' }) => void
+  ```
+</ResponseField>
+
+### Usage Example
+
+```tsx
+import { useTableUrlState } from '@/hooks/use-table-url-state'
+import { useNavigate, useSearch } from '@tanstack/react-router'
+
+function UsersTable() {
+  const navigate = useNavigate()
+  const search = useSearch({ from: '/users' })
+  
+  const {
+    pagination,
+    onPaginationChange,
+    globalFilter,
+    onGlobalFilterChange,
+    columnFilters,
+    onColumnFiltersChange,
+  } = useTableUrlState({
+    search,
+    navigate,
+    pagination: {
+      defaultPageSize: 20,
+    },
+    columnFilters: [
+      {
+        columnId: 'status',
+        searchKey: 'status',
+        type: 'array',
+      },
+    ],
+  })
+  
+  // Use with TanStack Table...
+}
+```
+
+---
+
+## useIsMobile
+
+Detects if the current viewport is mobile-sized (< 768px) using React's `useSyncExternalStore` for efficient updates.
+
+### Type Signature
+
+```typescript
+function useIsMobile(): boolean
+```
+
+### Returns
+
+<ResponseField name="isMobile" type="boolean">
+  `true` if viewport width is less than 768px, `false` otherwise
+</ResponseField>
+
+### Usage Example
+
+```tsx
+import { useIsMobile } from '@/hooks/use-mobile'
+
+function ResponsiveComponent() {
+  const isMobile = useIsMobile()
+  
+  return (
+    <div>
+      {isMobile ? <MobileView /> : <DesktopView />}
+    </div>
+  )
+}
+```
+
+### Implementation Details
+
+- Uses `window.matchMedia` for efficient viewport detection
+- Breakpoint: 768px (mobile < 768px)
+- Subscribes to viewport changes automatically
+- Returns `false` during SSR
+
+---
+
+## useDialogState
+
+Manages dialog/modal state with support for multiple dialog types and toggle behavior.
+
+### Type Signature
+
+```typescript
+function useDialogState<T extends string | boolean>(
+  initialState?: T | null
+): readonly [T | null, (str: T | null) => void]
+```
+
+### Parameters
+
+<ParamField path="initialState" type="T | null" default="null">
+  Initial state for the dialog. Can be a string (for multi-dialog scenarios) or boolean.
+</ParamField>
+
+### Returns
+
+Returns a tuple similar to `useState`:
+
+<ResponseField name="[0]" type="T | null">
+  Current dialog state
+</ResponseField>
+
+<ResponseField name="[1]" type="(str: T | null) => void">
+  Setter function with toggle behavior - passing the same value closes the dialog
+</ResponseField>
+
+### Usage Examples
+
+<CodeGroup>
+
+```tsx Simple Dialog
+import useDialogState from '@/hooks/use-dialog-state'
+
+function UserActions() {
+  const [open, setOpen] = useDialogState<boolean>()
+  
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Delete</Button>
+      <AlertDialog open={!!open} onOpenChange={(open) => setOpen(open ? true : null)}>
+        {/* Dialog content */}
+      </AlertDialog>
+    </>
+  )
+}
+```
+
+```tsx Multiple Dialogs
+import useDialogState from '@/hooks/use-dialog-state'
+
+function UserActions() {
+  const [dialog, setDialog] = useDialogState<'approve' | 'reject'>()
+  
+  return (
+    <>
+      <Button onClick={() => setDialog('approve')}>Approve</Button>
+      <Button onClick={() => setDialog('reject')}>Reject</Button>
+      
+      <Dialog open={dialog === 'approve'} onOpenChange={() => setDialog(null)}>
+        {/* Approve dialog content */}
+      </Dialog>
+      
+      <Dialog open={dialog === 'reject'} onOpenChange={() => setDialog(null)}>
+        {/* Reject dialog content */}
+      </Dialog>
+    </>
+  )
+}
+```
+
+</CodeGroup>
+
+---
+
+## useLayout
+
+Accesses the layout context for controlling sidebar variant and collapsible behavior. Must be used within a `LayoutProvider`.
+
+### Type Signature
+
+```typescript
+function useLayout(): LayoutContextType
+```
+
+### Returns
+
+<ResponseField name="variant" type="'inset' | 'sidebar' | 'floating'">
+  Current sidebar variant
+</ResponseField>
+
+<ResponseField name="setVariant" type="(variant: Variant) => void">
+  Update sidebar variant and persist to cookies
+</ResponseField>
+
+<ResponseField name="defaultVariant" type="'inset'">
+  Default sidebar variant
+</ResponseField>
+
+<ResponseField name="collapsible" type="'offcanvas' | 'icon' | 'none'">
+  Current collapsible behavior
+</ResponseField>
+
+<ResponseField name="setCollapsible" type="(collapsible: Collapsible) => void">
+  Update collapsible behavior and persist to cookies
+</ResponseField>
+
+<ResponseField name="defaultCollapsible" type="'icon'">
+  Default collapsible behavior
+</ResponseField>
+
+<ResponseField name="resetLayout" type="() => void">
+  Reset both variant and collapsible to defaults
+</ResponseField>
+
+### Usage Example
+
+```tsx
+import { useLayout } from '@/context/layout-provider'
+
+function LayoutControls() {
+  const { variant, setVariant, collapsible, setCollapsible } = useLayout()
+  
+  return (
+    <div>
+      <Select value={variant} onValueChange={setVariant}>
+        <SelectItem value="inset">Inset</SelectItem>
+        <SelectItem value="sidebar">Sidebar</SelectItem>
+        <SelectItem value="floating">Floating</SelectItem>
+      </Select>
+      
+      <Select value={collapsible} onValueChange={setCollapsible}>
+        <SelectItem value="icon">Icon</SelectItem>
+        <SelectItem value="offcanvas">Offcanvas</SelectItem>
+        <SelectItem value="none">None</SelectItem>
+      </Select>
+    </div>
+  )
+}
+```
+
+### Storage
+
+Layout preferences are automatically persisted to cookies with a 7-day expiration:
+- `layout_variant`: Stores sidebar variant
+- `layout_collapsible`: Stores collapsible behavior

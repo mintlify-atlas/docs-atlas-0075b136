@@ -1,0 +1,522 @@
+---
+title: Settings Pages
+description: User profile, account, appearance, notifications, and display settings
+---
+
+Shadcn Admin includes a comprehensive settings section with multiple pages for managing user preferences, account details, and application appearance.
+
+## Overview
+
+The settings section uses a shared layout with sidebar navigation and consistent form patterns across all pages.
+
+**Location:** `src/features/settings/`  
+**Routes:** `/_authenticated/settings/` directory
+
+## Available Settings Pages
+
+<CardGroup cols={2}>
+  <Card title="Profile" icon="user">
+    Personal information and bio
+  </Card>
+  <Card title="Account" icon="id-card">
+    Language, timezone, and account preferences
+  </Card>
+  <Card title="Appearance" icon="palette">
+    Theme and visual customization
+  </Card>
+  <Card title="Notifications" icon="bell">
+    Notification preferences and channels
+  </Card>
+  <Card title="Display" icon="display">
+    UI element visibility controls
+  </Card>
+</CardGroup>
+
+## Settings Layout
+
+All settings pages use a shared layout with sidebar navigation:
+
+**File:** `src/routes/_authenticated/settings/route.tsx`
+
+The layout provides:
+- Sidebar with navigation links
+- Breadcrumbs
+- Consistent page structure
+- Responsive design
+
+## Profile Settings
+
+Manage personal information and public profile.
+
+**Route:** `/settings` (default settings page)  
+**File:** `src/features/settings/profile/index.tsx`
+
+### Implementation
+
+```tsx
+// src/routes/_authenticated/settings/index.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SettingsProfile } from '@/features/settings/profile'
+
+export const Route = createFileRoute('/_authenticated/settings/')({\n  component: SettingsProfile,
+})
+```
+
+### Component Structure
+
+```tsx
+// src/features/settings/profile/index.tsx
+import { ContentSection } from '../components/content-section'
+import { ProfileForm } from './profile-form'
+
+export function SettingsProfile() {
+  return (
+    <ContentSection
+      title='Profile'
+      desc='This is how others will see you on the site.'
+    >
+      <ProfileForm />
+    </ContentSection>
+  )
+}
+```
+
+### Profile Form Fields
+
+- **Username:** Display name
+- **Email:** Contact email (read-only if verified)
+- **Bio:** Short description
+- **URLs:** Social links and website
+- **Avatar:** Profile picture upload
+
+## Account Settings
+
+Configure account preferences like language and timezone.
+
+**Route:** `/settings/account`  
+**File:** `src/features/settings/account/index.tsx`
+
+### Implementation
+
+```tsx
+// src/routes/_authenticated/settings/account.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SettingsAccount } from '@/features/settings/account'
+
+export const Route = createFileRoute('/_authenticated/settings/account')({\n  component: SettingsAccount,
+})
+```
+
+### Component Structure
+
+```tsx
+// src/features/settings/account/index.tsx
+import { ContentSection } from '../components/content-section'
+import { AccountForm } from './account-form'
+
+export function SettingsAccount() {
+  return (
+    <ContentSection
+      title='Account'
+      desc='Update your account settings. Set your preferred language and timezone.'
+    >
+      <AccountForm />
+    </ContentSection>
+  )
+}
+```
+
+### Account Form Fields
+
+- **Name:** Full name
+- **Date of Birth:** Birthday for age verification
+- **Language:** Preferred interface language
+- **Timezone:** Local timezone for date/time display
+
+## Appearance Settings
+
+Customize the visual theme and appearance.
+
+**Route:** `/settings/appearance`  
+**File:** `src/features/settings/appearance/index.tsx`
+
+### Implementation
+
+```tsx
+// src/routes/_authenticated/settings/appearance.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SettingsAppearance } from '@/features/settings/appearance'
+
+export const Route = createFileRoute('/_authenticated/settings/appearance')({\n  component: SettingsAppearance,
+})
+```
+
+### Component Structure
+
+```tsx
+// src/features/settings/appearance/index.tsx
+import { ContentSection } from '../components/content-section'
+import { AppearanceForm } from './appearance-form'
+
+export function SettingsAppearance() {
+  return (
+    <ContentSection
+      title='Appearance'
+      desc='Customize the appearance of the app. Automatically switch between day and night themes.'
+    >
+      <AppearanceForm />
+    </ContentSection>
+  )
+}
+```
+
+### Appearance Options
+
+- **Theme:** Light, dark, or system preference
+- **Font:** Interface font selection
+- **Accent Color:** Primary color theme
+- **Sidebar Style:** Compact or expanded
+
+<Note>
+Theme changes are applied immediately and persisted to local storage.
+</Note>
+
+## Notifications Settings
+
+Configure how and when to receive notifications.
+
+**Route:** `/settings/notifications`  
+**File:** `src/features/settings/notifications/index.tsx`
+
+### Implementation
+
+```tsx
+// src/routes/_authenticated/settings/notifications.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SettingsNotifications } from '@/features/settings/notifications'
+
+export const Route = createFileRoute('/_authenticated/settings/notifications')({\n  component: SettingsNotifications,
+})
+```
+
+### Component Structure
+
+```tsx
+// src/features/settings/notifications/index.tsx
+import { ContentSection } from '../components/content-section'
+import { NotificationsForm } from './notifications-form'
+
+export function SettingsNotifications() {
+  return (
+    <ContentSection
+      title='Notifications'
+      desc='Configure how you receive notifications.'
+    >
+      <NotificationsForm />
+    </ContentSection>
+  )
+}
+```
+
+### Notification Types
+
+- **Communication Emails:** Direct messages and mentions
+- **Marketing Emails:** Product updates and newsletters
+- **Social Emails:** Friend requests and follows
+- **Security Alerts:** Account security notifications
+- **Push Notifications:** Browser and mobile push
+
+## Display Settings
+
+Control the visibility of UI elements.
+
+**Route:** `/settings/display`  
+**File:** `src/features/settings/display/index.tsx`
+
+### Implementation
+
+```tsx
+// src/routes/_authenticated/settings/display.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SettingsDisplay } from '@/features/settings/display'
+
+export const Route = createFileRoute('/_authenticated/settings/display')({\n  component: SettingsDisplay,
+})
+```
+
+### Component Structure
+
+```tsx
+// src/features/settings/display/index.tsx
+import { ContentSection } from '../components/content-section'
+import { DisplayForm } from './display-form'
+
+export function SettingsDisplay() {
+  return (
+    <ContentSection
+      title='Display'
+      desc="Turn items on or off to control what's displayed in the app."
+    >
+      <DisplayForm />
+    </ContentSection>
+  )
+}
+```
+
+### Display Options
+
+- **Sidebar Items:** Toggle sidebar navigation items
+- **Toolbar Items:** Show/hide toolbar buttons
+- **Panel Views:** Enable/disable panels and widgets
+- **Status Indicators:** Display online status
+
+## ContentSection Component
+
+All settings pages use the `ContentSection` wrapper for consistent layout.
+
+**File:** `src/features/settings/components/content-section.tsx`
+
+### Usage
+
+```tsx
+import { ContentSection } from '../components/content-section'
+
+<ContentSection
+  title='Your Title'
+  desc='Your description'
+>
+  {/* Your form component */}
+</ContentSection>
+```
+
+### Props
+
+- `title`: Section heading
+- `desc`: Description text below the title
+- `children`: Form or content to display
+
+## Form Patterns
+
+All settings forms follow consistent patterns:
+
+### Form Structure
+
+```tsx
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import * as z from 'zod'
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+
+const formSchema = z.object({
+  // Define your schema
+})
+
+export function YourForm() {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      // Default values
+    },
+  })
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    // Handle form submission
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+        <FormField
+          control={form.control}
+          name='fieldName'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Field Label</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormDescription>Field description</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type='submit'>Save changes</Button>
+      </form>
+    </Form>
+  )
+}
+```
+
+### Validation
+
+All forms use Zod for schema validation:
+
+```tsx
+const profileFormSchema = z.object({
+  username: z
+    .string()
+    .min(2, 'Username must be at least 2 characters.')
+    .max(30, 'Username must not be longer than 30 characters.'),
+  email: z.string().email('Invalid email address.'),
+  bio: z.string().max(160).optional(),
+})
+```
+
+## Settings Navigation
+
+The settings sidebar provides navigation between pages:
+
+```tsx
+const settingsNav = [
+  {
+    title: 'Profile',
+    href: '/settings',
+  },
+  {
+    title: 'Account',
+    href: '/settings/account',
+  },
+  {
+    title: 'Appearance',
+    href: '/settings/appearance',
+  },
+  {
+    title: 'Notifications',
+    href: '/settings/notifications',
+  },
+  {
+    title: 'Display',
+    href: '/settings/display',
+  },
+]
+```
+
+## Responsive Design
+
+Settings pages are fully responsive:
+
+- **Mobile:** Stacked layout, collapsible sidebar
+- **Tablet:** Side-by-side with compact sidebar
+- **Desktop:** Full sidebar with expanded navigation
+
+<Info>
+On mobile devices, the settings navigation appears as a dropdown menu instead of a sidebar.
+</Info>
+
+## Adding Custom Settings Pages
+
+To add a new settings page:
+
+### 1. Create the Route
+
+```tsx
+// src/routes/_authenticated/settings/custom.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SettingsCustom } from '@/features/settings/custom'
+
+export const Route = createFileRoute('/_authenticated/settings/custom')({\n  component: SettingsCustom,
+})
+```
+
+### 2. Create the Feature Component
+
+```tsx
+// src/features/settings/custom/index.tsx
+import { ContentSection } from '../components/content-section'
+import { CustomForm } from './custom-form'
+
+export function SettingsCustom() {
+  return (
+    <ContentSection
+      title='Custom Settings'
+      desc='Your custom settings description.'
+    >
+      <CustomForm />
+    </ContentSection>
+  )
+}
+```
+
+### 3. Create the Form
+
+```tsx
+// src/features/settings/custom/custom-form.tsx
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import * as z from 'zod'
+// ... implement your form
+```
+
+### 4. Update Navigation
+
+Add your new page to the settings navigation configuration.
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Validation" icon="shield-check">
+    Always validate both client-side with Zod and server-side
+  </Card>
+  <Card title="Feedback" icon="comment">
+    Show success/error messages after form submission
+  </Card>
+  <Card title="Defaults" icon="sliders">
+    Provide sensible default values for all form fields
+  </Card>
+  <Card title="Persistence" icon="floppy-disk">
+    Save settings changes immediately or with clear save actions
+  </Card>
+</CardGroup>
+
+## Form Components Used
+
+<Tabs>
+  <Tab title="Input Fields">
+    - `Input`: Text, email, password inputs
+    - `Textarea`: Multi-line text
+    - `Select`: Dropdown selections
+    - `Combobox`: Searchable select
+  </Tab>
+  <Tab title="Selection">
+    - `Checkbox`: Boolean toggles
+    - `RadioGroup`: Single selection
+    - `Switch`: On/off toggles
+  </Tab>
+  <Tab title="Date & Time">
+    - `Calendar`: Date picker
+    - `DatePicker`: Date selection
+    - `TimePicker`: Time selection
+  </Tab>
+  <Tab title="Advanced">
+    - `FileUpload`: File selection
+    - `ColorPicker`: Color selection
+    - `Slider`: Range selection
+  </Tab>
+</Tabs>
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Dashboard" icon="chart-line" href="/pages/dashboard">
+    Main application dashboard
+  </Card>
+  <Card title="Forms" icon="file-lines" href="/components/forms">
+    Form components and validation
+  </Card>
+  <Card title="Authentication" icon="lock" href="/pages/authentication">
+    User authentication pages
+  </Card>
+  <Card title="UI Components" icon="cube" href="/api/components/ui">
+    Reusable UI components
+  </Card>
+</CardGroup>

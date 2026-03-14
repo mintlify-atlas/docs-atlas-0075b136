@@ -1,0 +1,422 @@
+---
+title: State Management
+description: Learn how to use Zustand for global state management in Shadcn Admin
+---
+
+## Overview
+
+Shadcn Admin uses [Zustand](https://github.com/pmndrs/zustand) for lightweight, scalable state management. Zustand provides a simple API with minimal boilerplate and excellent TypeScript support.
+
+## Why Zustand?
+
+<CardGroup cols={2}>
+  <Card title="Minimal Boilerplate" icon="code">
+    Simple API with no providers or context needed.
+  </Card>
+  
+  <Card title="TypeScript First" icon="shield-check">
+    Full type inference and type safety out of the box.
+  </Card>
+  
+  <Card title="Small Bundle" icon="feather">
+    Less than 1KB gzipped with zero dependencies.
+  </Card>
+  
+  <Card title="DevTools Support" icon="bug">
+    Compatible with Redux DevTools for debugging.
+  </Card>
+</CardGroup>
+
+## Creating a Store
+
+Stores are located in `src/stores/`. Here's the authentication store:
+
+```typescript src/stores/auth-store.ts
+import { create } from 'zustand'
+import { getCookie, setCookie, removeCookie } from '@/lib/cookies'
+
+const ACCESS_TOKEN = 'thisisjustarandomstring'
+
+interface AuthUser {
+  accountNo: string
+  email: string
+  role: string[]
+  exp: number
+}
+
+interface AuthState {
+  auth: {
+    user: AuthUser | null
+    setUser: (user: AuthUser | null) => void
+    accessToken: string
+    setAccessToken: (accessToken: string) => void
+    resetAccessToken: () => void
+    reset: () => void
+  }
+}
+
+export const useAuthStore = create<AuthState>()((set) => {
+  const cookieState = getCookie(ACCESS_TOKEN)
+  const initToken = cookieState ? JSON.parse(cookieState) : ''
+  
+  return {
+    auth: {
+      user: null,
+      setUser: (user) =>
+        set((state) => ({ ...state, auth: { ...state.auth, user } })),
+      accessToken: initToken,
+      setAccessToken: (accessToken) =>
+        set((state) => {
+          setCookie(ACCESS_TOKEN, JSON.stringify(accessToken))
+          return { ...state, auth: { ...state.auth, accessToken } }
+        }),
+      resetAccessToken: () =>
+        set((state) => {
+          removeCookie(ACCESS_TOKEN)
+          return { ...state, auth: { ...state.auth, accessToken: '' } }
+        }),
+      reset: () =>
+        set((state) => {
+          removeCookie(ACCESS_TOKEN)
+          return {
+            ...state,
+            auth: { ...state.auth, user: null, accessToken: '' },
+          }
+        }),
+    },
+  }
+})
+```
+
+## Using Stores in Components
+
+Access store values and actions in any component:
+
+```tsx src/features/auth/sign-in/components/user-auth-form.tsx
+import { useAuthStore } from '@/stores/auth-store'
+import { useNavigate } from '@tanstack/react-router'
+
+export function UserAuthForm({ redirectTo }: UserAuthFormProps) {
+  const navigate = useNavigate()
+  const { auth } = useAuthStore()
+
+  function onSubmit(data: z.infer<typeof formSchema>) {
+    // Mock successful authentication
+    const mockUser = {
+      accountNo: 'ACC001',
+      email: data.email,
+      role: ['user'],
+      exp: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+    }
+
+    // Update store
+    auth.setUser(mockUser)
+    auth.setAccessToken('mock-access-token')
+
+    // Navigate to dashboard
+    navigate({ to: redirectTo || '/', replace: true })
+  }
+
+  return <Form onSubmit={form.handleSubmit(onSubmit)} />
+}
+```
+
+## Store Patterns
+
+<Steps>
+  <Step title="State + Actions Pattern">
+    Organize stores with state and actions together:
+
+    ```typescript
+    interface StoreState {
+      data: SomeData[]
+      loading: boolean
+      setData: (data: SomeData[]) => void
+      setLoading: (loading: boolean) => void
+    }
+
+    export const useStore = create<StoreState>()((set) => ({
+      data: [],
+      loading: false,
+      setData: (data) => set({ data }),
+      setLoading: (loading) => set({ loading }),
+    }))
+    ```
+  </Step>
+
+  <Step title="Nested State Pattern">
+    Group related state and actions in objects:
+
+    ```typescript
+    interface AuthState {
+      auth: {
+        user: User | null
+        setUser: (user: User | null) => void
+        reset: () => void
+      }
+    }
+
+    export const useAuthStore = create<AuthState>()((set) => ({
+      auth: {
+        user: null,
+        setUser: (user) =>
+          set((state) => ({ 
+            ...state, 
+            auth: { ...state.auth, user } 
+          })),
+        reset: () =>
+          set((state) => ({
+            ...state,
+            auth: { ...state.auth, user: null },
+          })),
+      },
+    }))
+    ```
+  </Step>
+
+  <Step title="Computed Values">
+    Derive values in selectors instead of storing them:
+
+    ```typescript
+    function UserProfile() {
+      // Select only what you need
+      const isAuthenticated = useAuthStore(
+        (state) => state.auth.user !== null
+      )
+      const userRole = useAuthStore(
+        (state) => state.auth.user?.role[0]
+      )
+
+      return (
+        <div>
+          {isAuthenticated && <p>Role: {userRole}</p>}
+        </div>
+      )
+    }
+    ```
+  </Step>
+</Steps>
+
+## Persistence
+
+The auth store demonstrates cookie-based persistence:
+
+```typescript
+import { getCookie, setCookie, removeCookie } from '@/lib/cookies'
+
+export const useAuthStore = create<AuthState>()((set) => {
+  // Initialize from cookie
+  const cookieState = getCookie(ACCESS_TOKEN)
+  const initToken = cookieState ? JSON.parse(cookieState) : ''
+  
+  return {
+    auth: {
+      accessToken: initToken,
+      setAccessToken: (accessToken) =>
+        set((state) => {
+          // Persist to cookie on update
+          setCookie(ACCESS_TOKEN, JSON.stringify(accessToken))
+          return { ...state, auth: { ...state.auth, accessToken } }
+        }),
+      resetAccessToken: () =>
+        set((state) => {
+          // Remove cookie on reset
+          removeCookie(ACCESS_TOKEN)
+          return { ...state, auth: { ...state.auth, accessToken: '' } }
+        }),
+    },
+  }
+})
+```
+
+<Note>
+  For more persistence options, consider the official [persist middleware](https://github.com/pmndrs/zustand#persist-middleware).
+</Note>
+
+## Accessing Store Outside Components
+
+Call stores directly without hooks for non-React code:
+
+```typescript src/main.tsx
+import { useAuthStore } from '@/stores/auth-store'
+
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error) => {
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 401) {
+          toast.error('Session expired!')
+          // Access store outside component
+          useAuthStore.getState().auth.reset()
+          router.navigate({ to: '/sign-in' })
+        }
+      }
+    },
+  }),
+})
+```
+
+## Local Component State
+
+For UI-specific state, use local hooks instead of global stores:
+
+```tsx src/hooks/use-dialog-state.tsx
+import { useState } from 'react'
+
+/**
+ * Custom hook for dialog state management
+ * @example const [open, setOpen] = useDialogState<"create" | "edit">()
+ */
+export default function useDialogState<T extends string | boolean>(
+  initialState: T | null = null
+) {
+  const [open, _setOpen] = useState<T | null>(initialState)
+
+  const setOpen = (str: T | null) =>
+    _setOpen((prev) => (prev === str ? null : str))
+
+  return [open, setOpen] as const
+}
+```
+
+Use with React Context for feature-specific state:
+
+```tsx src/features/tasks/components/tasks-provider.tsx
+import React, { useState } from 'react'
+import useDialogState from '@/hooks/use-dialog-state'
+import { type Task } from '../data/schema'
+
+type TasksDialogType = 'create' | 'update' | 'delete' | 'import'
+
+type TasksContextType = {
+  open: TasksDialogType | null
+  setOpen: (str: TasksDialogType | null) => void
+  currentRow: Task | null
+  setCurrentRow: React.Dispatch<React.SetStateAction<Task | null>>
+}
+
+const TasksContext = React.createContext<TasksContextType | null>(null)
+
+export function TasksProvider({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = useDialogState<TasksDialogType>(null)
+  const [currentRow, setCurrentRow] = useState<Task | null>(null)
+
+  return (
+    <TasksContext value={{ open, setOpen, currentRow, setCurrentRow }}>
+      {children}
+    </TasksContext>
+  )
+}
+
+export const useTasks = () => {
+  const tasksContext = React.useContext(TasksContext)
+  if (!tasksContext) {
+    throw new Error('useTasks has to be used within <TasksProvider>')
+  }
+  return tasksContext
+}
+```
+
+## When to Use What
+
+<CardGroup cols={2}>
+  <Card title="Use Zustand For" icon="database">
+    - Authentication state
+    - User preferences
+    - App-wide configuration
+    - Cross-route data sharing
+  </Card>
+  
+  <Card title="Use Local State For" icon="component">
+    - Form input values
+    - Dialog/modal state
+    - Feature-specific UI state
+    - Temporary component data
+  </Card>
+</CardGroup>
+
+## Selectors for Performance
+
+Use selectors to prevent unnecessary re-renders:
+
+<CodeGroup>
+```tsx Bad - Re-renders on any auth change
+function UserMenu() {
+  const { auth } = useAuthStore()
+  return <div>{auth.user?.email}</div>
+}
+```
+
+```tsx Good - Only re-renders when email changes
+function UserMenu() {
+  const email = useAuthStore((state) => state.auth.user?.email)
+  return <div>{email}</div>
+}
+```
+</CodeGroup>
+
+## Multiple Stores
+
+Create separate stores for different domains:
+
+```typescript
+// ✅ Good - Separate concerns
+src/stores/
+├── auth-store.ts      // Authentication
+├── theme-store.ts     // UI preferences
+└── settings-store.ts  // App settings
+
+// ❌ Bad - Everything in one store
+src/stores/
+└── global-store.ts    // All app state
+```
+
+## Testing Stores
+
+Stores are easy to test without complex setup:
+
+```typescript
+import { renderHook, act } from '@testing-library/react'
+import { useAuthStore } from '@/stores/auth-store'
+
+test('sets user correctly', () => {
+  const { result } = renderHook(() => useAuthStore())
+  
+  act(() => {
+    result.current.auth.setUser({
+      accountNo: 'ACC001',
+      email: 'test@example.com',
+      role: ['user'],
+      exp: Date.now() + 1000,
+    })
+  })
+  
+  expect(result.current.auth.user?.email).toBe('test@example.com')
+})
+```
+
+## Best Practices
+
+<Steps>
+  <Step title="Keep Stores Small">
+    Create focused stores for specific domains instead of one large global store.
+  </Step>
+
+  <Step title="Use TypeScript">
+    Define proper interfaces for type safety and better DX.
+  </Step>
+
+  <Step title="Avoid Over-Storing">
+    Don't store derived values - compute them in selectors instead.
+  </Step>
+
+  <Step title="Use Selectors">
+    Select only the data you need to minimize re-renders.
+  </Step>
+</Steps>
+
+## Related Resources
+
+- [Zustand Documentation](https://github.com/pmndrs/zustand)
+- [Zustand Best Practices](https://github.com/pmndrs/zustand#best-practices)
+- [React Context vs Zustand](https://github.com/pmndrs/zustand/wiki/React-Context-vs-Zustand)

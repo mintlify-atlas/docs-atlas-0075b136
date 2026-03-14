@@ -1,0 +1,400 @@
+---
+title: Layout Components
+description: API reference for Shadcn Admin layout components including AppSidebar, NavGroup, and TeamSwitcher.
+---
+
+Layout components provide the structural foundation for your admin dashboard, including navigation, sidebar, and user management.
+
+## AppSidebar
+
+The main application sidebar component that combines header, navigation, and footer sections.
+
+### Import
+
+```tsx
+import { AppSidebar } from '@/components/layout/app-sidebar'
+```
+
+### Usage
+
+```tsx
+import { AppSidebar } from '@/components/layout/app-sidebar'
+import { SidebarProvider } from '@/components/ui/sidebar'
+
+function Layout({ children }) {
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <main>{children}</main>
+    </SidebarProvider>
+  )
+}
+```
+
+### Structure
+
+The `AppSidebar` component is composed of:
+
+- **SidebarHeader**: Contains `TeamSwitcher` or `AppTitle`
+- **SidebarContent**: Renders navigation groups using `NavGroup`
+- **SidebarFooter**: Contains `NavUser` component
+- **SidebarRail**: Collapse/expand control
+
+### Data Source
+
+Navigation data is imported from `./data/sidebar-data`:
+
+```typescript
+type SidebarData = {
+  user: {
+    name: string
+    email: string
+    avatar: string
+  }
+  teams: {
+    name: string
+    logo: React.ElementType
+    plan: string
+  }[]
+  navGroups: NavGroup[]
+}
+```
+
+### Customization
+
+<Accordion title="Replace TeamSwitcher with AppTitle">
+  Uncomment the `<AppTitle />` component and remove `<TeamSwitcher />` to show a simple app title instead of the team dropdown.
+  
+  ```tsx
+  <SidebarHeader>
+    {/* <TeamSwitcher teams={sidebarData.teams} /> */}
+    <AppTitle />
+  </SidebarHeader>
+  ```
+</Accordion>
+
+<Accordion title="Customize Layout Variant">
+  The sidebar automatically uses layout settings from `useLayout()`:
+  
+  ```tsx
+  const { collapsible, variant } = useLayout()
+  
+  return (
+    <Sidebar collapsible={collapsible} variant={variant}>
+      {/* ... */}
+    </Sidebar>
+  )
+  ```
+</Accordion>
+
+---
+
+## NavGroup
+
+Renders a group of navigation items with support for links and collapsible sub-menus.
+
+### Import
+
+```tsx
+import { NavGroup } from '@/components/layout/nav-group'
+```
+
+### Props
+
+<ParamField path="title" type="string" required>
+  Title displayed above the navigation group
+</ParamField>
+
+<ParamField path="items" type="NavItem[]" required>
+  Array of navigation items. Each item can be a link or collapsible with sub-items.
+  
+  ```typescript
+  type NavItem = NavLink | NavCollapsible
+  
+  type NavLink = {
+    title: string
+    url: string
+    icon?: React.ElementType
+    badge?: string
+  }
+  
+  type NavCollapsible = {
+    title: string
+    icon?: React.ElementType
+    badge?: string
+    items: {
+      title: string
+      url: string
+      icon?: React.ElementType
+      badge?: string
+    }[]
+  }
+  ```
+</ParamField>
+
+### Usage Examples
+
+<CodeGroup>
+
+```tsx Simple Links
+import { NavGroup } from '@/components/layout/nav-group'
+import { Home, Settings } from 'lucide-react'
+
+function Sidebar() {
+  return (
+    <NavGroup
+      title="Main"
+      items={[
+        {
+          title: 'Dashboard',
+          url: '/',
+          icon: Home,
+        },
+        {
+          title: 'Settings',
+          url: '/settings',
+          icon: Settings,
+          badge: 'New',
+        },
+      ]}
+    />
+  )
+}
+```
+
+```tsx With Collapsible
+import { NavGroup } from '@/components/layout/nav-group'
+import { Users, UserPlus, UserCheck } from 'lucide-react'
+
+function Sidebar() {
+  return (
+    <NavGroup
+      title="Users"
+      items={[
+        {
+          title: 'User Management',
+          icon: Users,
+          badge: '12',
+          items: [
+            { title: 'All Users', url: '/users', icon: Users },
+            { title: 'Add User', url: '/users/new', icon: UserPlus },
+            { title: 'Active Users', url: '/users/active', icon: UserCheck },
+          ],
+        },
+      ]}
+    />
+  )
+}
+```
+
+</CodeGroup>
+
+### Features
+
+- **Active State Detection**: Automatically highlights active routes
+- **Responsive Behavior**:
+  - Collapsed sidebar shows dropdown menus
+  - Mobile view uses offcanvas pattern
+- **Badges**: Optional badges for counts or labels
+- **Icons**: Optional Lucide icons for visual clarity
+- **Deep Linking**: Supports nested routes and query parameters
+
+### Active State Logic
+
+Navigation items are marked active when:
+- Current URL exactly matches item URL
+- Current URL (without query params) matches item URL
+- Any child item URL matches current URL
+- Main section matches (for top-level collapsible items)
+
+---
+
+## TeamSwitcher
+
+Dropdown component for switching between multiple teams or organizations.
+
+### Import
+
+```tsx
+import { TeamSwitcher } from '@/components/layout/team-switcher'
+```
+
+### Props
+
+<ParamField path="teams" type="Team[]" required>
+  Array of team objects
+  
+  ```typescript
+  type Team = {
+    name: string
+    logo: React.ElementType
+    plan: string
+  }
+  ```
+  
+  - `name`: Team display name
+  - `logo`: Icon component for team logo
+  - `plan`: Plan tier (e.g., "Free", "Pro", "Enterprise")
+</ParamField>
+
+### Usage Example
+
+```tsx
+import { TeamSwitcher } from '@/components/layout/team-switcher'
+import { Building2, Briefcase, Rocket } from 'lucide-react'
+
+const teams = [
+  {
+    name: 'Acme Corp',
+    logo: Building2,
+    plan: 'Enterprise',
+  },
+  {
+    name: 'Startup Inc',
+    logo: Rocket,
+    plan: 'Pro',
+  },
+  {
+    name: 'Freelance',
+    logo: Briefcase,
+    plan: 'Free',
+  },
+]
+
+function Sidebar() {
+  return <TeamSwitcher teams={teams} />
+}
+```
+
+### Features
+
+- **Team Selection**: Click to switch between teams
+- **Keyboard Shortcuts**: Shows ⌘1, ⌘2, etc. for quick switching
+- **Add Team**: Built-in "Add team" option at bottom
+- **Responsive**: Adapts position for mobile vs desktop
+- **Active Indicator**: Shows currently selected team with logo
+
+### State Management
+
+The component manages active team state internally using `useState`. The first team in the array is selected by default.
+
+```typescript
+const [activeTeam, setActiveTeam] = React.useState(teams[0])
+```
+
+To persist team selection, you can lift this state up or integrate with your global state management.
+
+### Customization
+
+<Accordion title="Remove Add Team Option">
+  Remove the last section in the dropdown:
+  
+  ```tsx
+  // Remove this section:
+  <DropdownMenuSeparator />
+  <DropdownMenuItem className='gap-2 p-2'>
+    <div className='flex size-6 items-center justify-center rounded-md border bg-background'>
+      <Plus className='size-4' />
+    </div>
+    <div className='font-medium text-muted-foreground'>Add team</div>
+  </DropdownMenuItem>
+  ```
+</Accordion>
+
+<Accordion title="Add Click Handler">
+  Make team switching functional:
+  
+  ```tsx
+  function TeamSwitcher({ teams, onTeamChange }) {
+    const [activeTeam, setActiveTeam] = React.useState(teams[0])
+    
+    const handleTeamChange = (team) => {
+      setActiveTeam(team)
+      onTeamChange?.(team)
+    }
+    
+    return (
+      // ... in DropdownMenuItem
+      <DropdownMenuItem
+        onClick={() => handleTeamChange(team)}
+      >
+        {/* ... */}
+      </DropdownMenuItem>
+    )
+  }
+  ```
+</Accordion>
+
+---
+
+## NavUser
+
+User profile component displayed in the sidebar footer.
+
+### Import
+
+```tsx
+import { NavUser } from '@/components/layout/nav-user'
+```
+
+### Props
+
+<ParamField path="user" type="User" required>
+  User object containing:
+  
+  ```typescript
+  type User = {
+    name: string
+    email: string
+    avatar: string
+  }
+  ```
+</ParamField>
+
+### Usage Example
+
+```tsx
+import { NavUser } from '@/components/layout/nav-user'
+
+const user = {
+  name: 'John Doe',
+  email: 'john@example.com',
+  avatar: '/avatars/john.jpg',
+}
+
+function SidebarFooter() {
+  return <NavUser user={user} />
+}
+```
+
+---
+
+## AuthenticatedLayout
+
+Main layout wrapper that combines sidebar and content area.
+
+### Import
+
+```tsx
+import { AuthenticatedLayout } from '@/components/layout/authenticated-layout'
+```
+
+### Usage
+
+```tsx
+import { AuthenticatedLayout } from '@/components/layout/authenticated-layout'
+
+function App() {
+  return (
+    <AuthenticatedLayout>
+      <YourPageContent />
+    </AuthenticatedLayout>
+  )
+}
+```
+
+This component provides:
+- Sidebar integration
+- Responsive layout
+- Theme support
+- Layout context

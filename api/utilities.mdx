@@ -1,0 +1,348 @@
+---
+title: Utilities
+description: Utility functions for styling, pagination, and error handling in Shadcn Admin.
+---
+
+Shadcn Admin provides a collection of utility functions to streamline common operations.
+
+## cn
+
+Combines and merges Tailwind CSS class names intelligently, resolving conflicts and removing duplicates.
+
+### Type Signature
+
+```typescript
+function cn(...inputs: ClassValue[]): string
+```
+
+### Parameters
+
+<ParamField path="inputs" type="ClassValue[]">
+  Variable number of class values to merge. Accepts:
+  - Strings: `"text-sm font-bold"`
+  - Objects: `{ "active": isActive }`
+  - Arrays: `["btn", isActive && "btn-active"]`
+  - Undefined/null/false (filtered out)
+</ParamField>
+
+### Returns
+
+<ResponseField name="className" type="string">
+  Merged and deduplicated class string with Tailwind conflicts resolved
+</ResponseField>
+
+### Usage Examples
+
+<CodeGroup>
+
+```tsx Basic Usage
+import { cn } from '@/lib/utils'
+
+function Button({ className, variant }) {
+  return (
+    <button
+      className={cn(
+        'px-4 py-2 rounded',
+        variant === 'primary' && 'bg-blue-500 text-white',
+        variant === 'secondary' && 'bg-gray-500 text-white',
+        className
+      )}
+    />
+  )
+}
+```
+
+```tsx Conditional Classes
+import { cn } from '@/lib/utils'
+
+function Card({ isActive, className }) {
+  return (
+    <div
+      className={cn(
+        'border rounded-lg p-4',
+        isActive ? 'border-blue-500' : 'border-gray-200',
+        className
+      )}
+    />
+  )
+}
+```
+
+```tsx With Object Syntax
+import { cn } from '@/lib/utils'
+
+function Badge({ variant, size }) {
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center rounded-full',
+        {
+          'bg-blue-100 text-blue-800': variant === 'info',
+          'bg-red-100 text-red-800': variant === 'error',
+          'px-2 py-1 text-xs': size === 'sm',
+          'px-3 py-1.5 text-sm': size === 'md',
+        }
+      )}
+    />
+  )
+}
+```
+
+</CodeGroup>
+
+### Implementation
+
+Built using [clsx](https://github.com/lukeed/clsx) for class concatenation and [tailwind-merge](https://github.com/dcastil/tailwind-merge) for intelligent Tailwind class merging:
+
+```typescript
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+```
+
+---
+
+## getPageNumbers
+
+Generates an array of page numbers with ellipsis for pagination UI, optimized for displaying up to 5 visible page buttons.
+
+### Type Signature
+
+```typescript
+function getPageNumbers(
+  currentPage: number,
+  totalPages: number
+): (number | string)[]
+```
+
+### Parameters
+
+<ParamField path="currentPage" type="number" required>
+  Current page number (1-based indexing)
+</ParamField>
+
+<ParamField path="totalPages" type="number" required>
+  Total number of pages available
+</ParamField>
+
+### Returns
+
+<ResponseField name="pageNumbers" type="(number | string)[]">
+  Array containing page numbers (as numbers) and `'...'` strings for ellipsis
+</ResponseField>
+
+### Behavior Patterns
+
+<Accordion title="Small datasets (≤5 pages)">
+  Shows all page numbers without ellipsis.
+  
+  ```typescript
+  getPageNumbers(3, 5)
+  // Returns: [1, 2, 3, 4, 5]
+  ```
+</Accordion>
+
+<Accordion title="Near beginning (page ≤3)">
+  Shows first 4 pages, then ellipsis, then last page.
+  
+  ```typescript
+  getPageNumbers(2, 10)
+  // Returns: [1, 2, 3, 4, '...', 10]
+  ```
+</Accordion>
+
+<Accordion title="In middle">
+  Shows first page, ellipsis, current ±1 pages, ellipsis, last page.
+  
+  ```typescript
+  getPageNumbers(5, 10)
+  // Returns: [1, '...', 4, 5, 6, '...', 10]
+  ```
+</Accordion>
+
+<Accordion title="Near end (page ≥ totalPages - 2)">
+  Shows first page, ellipsis, then last 4 pages.
+  
+  ```typescript
+  getPageNumbers(8, 10)
+  // Returns: [1, '...', 7, 8, 9, 10]
+  ```
+</Accordion>
+
+### Usage Example
+
+```tsx
+import { getPageNumbers } from '@/lib/utils'
+
+function Pagination({ currentPage, totalPages, onPageChange }) {
+  const pageNumbers = getPageNumbers(currentPage, totalPages)
+  
+  return (
+    <div className="flex gap-1">
+      {pageNumbers.map((pageNumber, index) => (
+        <div key={`${pageNumber}-${index}`}>
+          {pageNumber === '...' ? (
+            <span className="px-2">...</span>
+          ) : (
+            <Button
+              variant={currentPage === pageNumber ? 'default' : 'outline'}
+              onClick={() => onPageChange(pageNumber)}
+            >
+              {pageNumber}
+            </Button>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+---
+
+## sleep
+
+Creates a promise that resolves after a specified delay. Useful for simulating loading states or adding delays.
+
+### Type Signature
+
+```typescript
+function sleep(ms?: number): Promise<void>
+```
+
+### Parameters
+
+<ParamField path="ms" type="number" default="1000">
+  Number of milliseconds to wait before resolving
+</ParamField>
+
+### Returns
+
+<ResponseField name="promise" type="Promise<void>">
+  Promise that resolves after the specified delay
+</ResponseField>
+
+### Usage Examples
+
+<CodeGroup>
+
+```tsx Simulating API Delay
+import { sleep } from '@/lib/utils'
+
+async function fetchData() {
+  // Simulate network delay in development
+  if (process.env.NODE_ENV === 'development') {
+    await sleep(500)
+  }
+  
+  return fetch('/api/data')
+}
+```
+
+```tsx Loading State
+import { sleep } from '@/lib/utils'
+
+async function handleSubmit(data) {
+  setLoading(true)
+  
+  try {
+    await apiCall(data)
+    setSuccess(true)
+    
+    // Show success message for 2 seconds
+    await sleep(2000)
+    setSuccess(false)
+  } finally {
+    setLoading(false)
+  }
+}
+```
+
+```tsx Debounce Alternative
+import { sleep } from '@/lib/utils'
+
+async function handleSearch(query) {
+  // Simple delay before search
+  await sleep(300)
+  performSearch(query)
+}
+```
+
+</CodeGroup>
+
+---
+
+## handleServerError
+
+Centralized error handler for server/API errors with toast notifications.
+
+### Type Signature
+
+```typescript
+function handleServerError(error: unknown): void
+```
+
+### Parameters
+
+<ParamField path="error" type="unknown" required>
+  Error object from API call or server response. Handles:
+  - Axios errors with response data
+  - 204 No Content responses
+  - Generic errors
+</ParamField>
+
+### Behavior
+
+1. Logs error to console for debugging
+2. Extracts appropriate error message:
+   - HTTP 204: "Content not found."
+   - Axios errors: Uses `response.data.title`
+   - Default: "Something went wrong!"
+3. Displays error toast using Sonner
+
+### Usage Example
+
+```tsx
+import { handleServerError } from '@/lib/handle-server-error'
+import axios from 'axios'
+
+async function deleteUser(userId: string) {
+  try {
+    await axios.delete(`/api/users/${userId}`)
+    toast.success('User deleted successfully')
+  } catch (error) {
+    handleServerError(error)
+  }
+}
+```
+
+### Implementation
+
+```typescript
+import { AxiosError } from 'axios'
+import { toast } from 'sonner'
+
+export function handleServerError(error: unknown) {
+  console.log(error)
+  
+  let errMsg = 'Something went wrong!'
+  
+  if (
+    error &&
+    typeof error === 'object' &&
+    'status' in error &&
+    Number(error.status) === 204
+  ) {
+    errMsg = 'Content not found.'
+  }
+  
+  if (error instanceof AxiosError) {
+    errMsg = error.response?.data.title
+  }
+  
+  toast.error(errMsg)
+}
+```

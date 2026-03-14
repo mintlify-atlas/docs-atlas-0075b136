@@ -1,0 +1,795 @@
+---
+title: Data Table
+description: Build powerful data tables with TanStack Table including sorting, filtering, pagination, and row actions
+icon: table
+---
+
+Shadcn Admin includes a comprehensive data table system built on [TanStack Table v8](https://tanstack.com/table/v8) with built-in components for common features like pagination, filtering, sorting, and bulk actions.
+
+## Overview
+
+The data table system is located in `src/components/data-table/` and provides:
+
+- **Pagination** - Navigate through pages with customizable rows per page
+- **Column Header** - Sortable column headers with visual indicators
+- **Faceted Filter** - Multi-select filtering by column values
+- **View Options** - Toggle column visibility
+- **Toolbar** - Unified search and filter interface
+- **Bulk Actions** - Perform actions on selected rows
+
+## Quick Start
+
+Here's a complete example from the Users page (`src/features/users/components/users-table.tsx`):
+
+```tsx
+import {
+  type ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
+
+type User = {
+  id: string
+  username: string
+  email: string
+  status: string
+}
+
+const columns: ColumnDef<User>[] = [
+  {
+    accessorKey: 'username',
+    header: 'Username',
+  },
+  {
+    accessorKey: 'email',
+    header: 'Email',
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+  },
+]
+
+export function UsersTable({ data }: { data: User[] }) {
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  })
+
+  return (
+    <div className="flex flex-col gap-4">
+      <DataTableToolbar table={table} searchKey="username" />
+      
+      <div className="overflow-hidden rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(
+                      cell.column.columnDef.cell,
+                      cell.getContext()
+                    )}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      
+      <DataTablePagination table={table} />
+    </div>
+  )
+}
+```
+
+## Data Table Components
+
+### DataTableToolbar
+
+Provides search input, faceted filters, and view options.
+
+<ParamField path="table" type="Table<TData>" required>
+  TanStack Table instance
+</ParamField>
+
+<ParamField path="searchPlaceholder" type="string" default="Filter...">
+  Placeholder text for search input
+</ParamField>
+
+<ParamField path="searchKey" type="string">
+  Column ID to filter by (uses global filter if omitted)
+</ParamField>
+
+<ParamField path="filters" type="FilterConfig[]">
+  Array of faceted filter configurations
+</ParamField>
+
+```tsx
+import { DataTableToolbar } from '@/components/data-table'
+
+<DataTableToolbar
+  table={table}
+  searchPlaceholder="Filter users..."
+  searchKey="username"
+  filters={[
+    {
+      columnId: 'status',
+      title: 'Status',
+      options: [
+        { label: 'Active', value: 'active' },
+        { label: 'Inactive', value: 'inactive' },
+      ],
+    },
+    {
+      columnId: 'role',
+      title: 'Role',
+      options: [
+        { label: 'Admin', value: 'admin' },
+        { label: 'User', value: 'user' },
+      ],
+    },
+  ]}
+/>
+```
+
+From `src/components/data-table/toolbar.tsx:8-21`, the filter configuration type:
+
+```tsx
+type DataTableToolbarProps<TData> = {
+  table: Table<TData>
+  searchPlaceholder?: string
+  searchKey?: string
+  filters?: {
+    columnId: string
+    title: string
+    options: {
+      label: string
+      value: string
+      icon?: React.ComponentType<{ className?: string }>
+    }[]
+  }[]
+}
+```
+
+### DataTablePagination
+
+Full-featured pagination with page numbers and rows per page selector.
+
+<ParamField path="table" type="Table<TData>" required>
+  TanStack Table instance
+</ParamField>
+
+<ParamField path="className" type="string">
+  Additional CSS classes
+</ParamField>
+
+```tsx
+import { DataTablePagination } from '@/components/data-table'
+
+<DataTablePagination table={table} className="mt-auto" />
+```
+
+Features (from `src/components/data-table/pagination.tsx`):
+- First/last page navigation
+- Previous/next page buttons
+- Numbered page buttons with ellipsis
+- Rows per page selector (10, 20, 30, 40, 50)
+- Page count display
+- Responsive design for mobile
+
+### DataTableColumnHeader
+
+Sortable column headers with visual indicators.
+
+<ParamField path="column" type="Column<TData>" required>
+  TanStack Table column instance
+</ParamField>
+
+<ParamField path="title" type="string" required>
+  Column title to display
+</ParamField>
+
+```tsx
+import { DataTableColumnHeader } from '@/components/data-table'
+import { type ColumnDef } from '@tanstack/react-table'
+
+const columns: ColumnDef<User>[] = [
+  {
+    accessorKey: 'username',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Username" />
+    ),
+  },
+]
+```
+
+From `src/components/data-table/column-header.tsx`, provides:
+- Click to sort ascending/descending
+- Visual sort direction indicator
+- Dropdown menu for advanced options
+- Hide column option
+
+### DataTableFacetedFilter
+
+Multi-select filter with badge indicators.
+
+<ParamField path="column" type="Column<TData>" required>
+  TanStack Table column instance
+</ParamField>
+
+<ParamField path="title" type="string" required>
+  Filter title
+</ParamField>
+
+<ParamField path="options" type="FilterOption[]" required>
+  Array of filter options with label, value, and optional icon
+</ParamField>
+
+```tsx
+import { DataTableFacetedFilter } from '@/components/data-table'
+
+<DataTableFacetedFilter
+  column={table.getColumn('status')}
+  title="Status"
+  options={[
+    { label: 'Active', value: 'active' },
+    { label: 'Inactive', value: 'inactive' },
+  ]}
+/>
+```
+
+### DataTableViewOptions
+
+Toggle column visibility.
+
+<ParamField path="table" type="Table<TData>" required>
+  TanStack Table instance
+</ParamField>
+
+```tsx
+import { DataTableViewOptions } from '@/components/data-table'
+
+<DataTableViewOptions table={table} />
+```
+
+### DataTableBulkActions
+
+Floating action bar for selected rows.
+
+<ParamField path="table" type="Table<TData>" required>
+  TanStack Table instance
+</ParamField>
+
+```tsx
+import { DataTableBulkActions } from '@/components/data-table'
+
+<DataTableBulkActions table={table} />
+```
+
+Shows when rows are selected and provides actions like delete, export, etc.
+
+## Column Definitions
+
+### Basic Column
+
+```tsx
+import { type ColumnDef } from '@tanstack/react-table'
+
+const columns: ColumnDef<User>[] = [
+  {
+    accessorKey: 'username',
+    header: 'Username',
+    cell: ({ row }) => row.getValue('username'),
+  },
+]
+```
+
+### Sortable Column
+
+```tsx
+import { DataTableColumnHeader } from '@/components/data-table'
+
+const columns: ColumnDef<User>[] = [
+  {
+    accessorKey: 'email',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Email" />
+    ),
+  },
+]
+```
+
+### Custom Cell Rendering
+
+From `src/features/users/components/users-columns.tsx:87-99`:
+
+```tsx
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
+
+const columns: ColumnDef<User>[] = [
+  {
+    accessorKey: 'status',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Status" />
+    ),
+    cell: ({ row }) => {
+      const { status } = row.original
+      const badgeColor = callTypes.get(status)
+      return (
+        <div className="flex space-x-2">
+          <Badge variant="outline" className={cn('capitalize', badgeColor)}>
+            {row.getValue('status')}
+          </Badge>
+        </div>
+      )
+    },
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id))
+    },
+  },
+]
+```
+
+### Checkbox Selection Column
+
+From `src/features/users/components/users-columns.tsx:11-38`:
+
+```tsx
+import { Checkbox } from '@/components/ui/checkbox'
+
+const columns: ColumnDef<User>[] = [
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+]
+```
+
+### Row Actions Column
+
+```tsx
+import { MoreHorizontal } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+
+const columns: ColumnDef<User>[] = [
+  {
+    id: 'actions',
+    cell: ({ row }) => {
+      const user = row.original
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(user.id)}>
+              Copy ID
+            </DropdownMenuItem>
+            <DropdownMenuItem>Edit</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive">
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    },
+  },
+]
+```
+
+## Table Configuration
+
+### Full Table Setup
+
+From `src/features/users/components/users-table.tsx:67-89`:
+
+```tsx
+import {
+  type SortingState,
+  type VisibilityState,
+  getCoreRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
+
+const [rowSelection, setRowSelection] = useState({})
+const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+const [sorting, setSorting] = useState<SortingState>([])
+const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
+
+const table = useReactTable({
+  data,
+  columns,
+  state: {
+    sorting,
+    pagination,
+    rowSelection,
+    columnFilters,
+    columnVisibility,
+  },
+  enableRowSelection: true,
+  onPaginationChange: setPagination,
+  onColumnFiltersChange: setColumnFilters,
+  onRowSelectionChange: setRowSelection,
+  onSortingChange: setSorting,
+  onColumnVisibilityChange: setColumnVisibility,
+  getCoreRowModel: getCoreRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  getFacetedRowModel: getFacetedRowModel(),
+  getFacetedUniqueValues: getFacetedUniqueValues(),
+})
+```
+
+### URL State Synchronization
+
+Shadcn Admin includes a `useTableUrlState` hook for syncing table state with URL params:
+
+```tsx
+import { useTableUrlState } from '@/hooks/use-table-url-state'
+
+const {
+  columnFilters,
+  onColumnFiltersChange,
+  pagination,
+  onPaginationChange,
+} = useTableUrlState({
+  search,
+  navigate,
+  pagination: { defaultPage: 1, defaultPageSize: 10 },
+  columnFilters: [
+    { columnId: 'username', searchKey: 'username', type: 'string' },
+    { columnId: 'status', searchKey: 'status', type: 'array' },
+  ],
+})
+```
+
+## Advanced Features
+
+### Sticky Columns
+
+Make columns stick to the left on mobile:
+
+```tsx
+const columns: ColumnDef<User>[] = [
+  {
+    accessorKey: 'username',
+    header: 'Username',
+    meta: {
+      className: 'max-md:sticky start-6 z-10',
+    },
+    enableHiding: false,
+  },
+]
+```
+
+### Custom Filter Functions
+
+```tsx
+const columns: ColumnDef<User>[] = [
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id))
+    },
+  },
+]
+```
+
+### Global Filtering
+
+```tsx
+const [globalFilter, setGlobalFilter] = useState('')
+
+const table = useReactTable({
+  data,
+  columns,
+  state: {
+    globalFilter,
+  },
+  onGlobalFilterChange: setGlobalFilter,
+  getFilteredRowModel: getFilteredRowModel(),
+})
+
+// In toolbar:
+<Input
+  placeholder="Search..."
+  value={globalFilter ?? ''}
+  onChange={(e) => setGlobalFilter(e.target.value)}
+/>
+```
+
+### Row Hover Effects
+
+From `src/features/users/components/users-table.tsx:128-175`:
+
+```tsx
+<TableRow
+  key={row.id}
+  data-state={row.getIsSelected() && 'selected'}
+  className="group/row"
+>
+  {row.getVisibleCells().map((cell) => (
+    <TableCell
+      key={cell.id}
+      className={cn(
+        'bg-background',
+        'group-hover/row:bg-muted',
+        'group-data-[state=selected]/row:bg-muted',
+        cell.column.columnDef.meta?.className
+      )}
+    >
+      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+    </TableCell>
+  ))}
+</TableRow>
+```
+
+## Complete Example
+
+Here's a full implementation with all features:
+
+<Accordion title="View Complete Example">
+```tsx
+import { useState } from 'react'
+import {
+  type ColumnDef,
+  type SortingState,
+  type VisibilityState,
+  type ColumnFiltersState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  useReactTable,
+} from '@tanstack/react-table'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  DataTablePagination,
+  DataTableToolbar,
+  DataTableColumnHeader,
+} from '@/components/data-table'
+
+type User = {
+  id: string
+  username: string
+  email: string
+  status: 'active' | 'inactive'
+  role: 'admin' | 'user'
+}
+
+const columns: ColumnDef<User>[] = [
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected()}
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+      />
+    ),
+  },
+  {
+    accessorKey: 'username',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Username" />
+    ),
+  },
+  {
+    accessorKey: 'email',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Email" />
+    ),
+  },
+  {
+    accessorKey: 'status',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Status" />
+    ),
+    cell: ({ row }) => (
+      <Badge variant="outline" className="capitalize">
+        {row.getValue('status')}
+      </Badge>
+    ),
+    filterFn: (row, id, value) => value.includes(row.getValue(id)),
+  },
+]
+
+export function DataTableDemo({ data }: { data: User[] }) {
+  const [rowSelection, setRowSelection] = useState({})
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: { sorting, columnFilters, columnVisibility, rowSelection },
+    enableRowSelection: true,
+    onRowSelectionChange: setRowSelection,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+  })
+
+  return (
+    <div className="flex flex-col gap-4">
+      <DataTableToolbar
+        table={table}
+        searchPlaceholder="Filter users..."
+        searchKey="username"
+        filters={[
+          {
+            columnId: 'status',
+            title: 'Status',
+            options: [
+              { label: 'Active', value: 'active' },
+              { label: 'Inactive', value: 'inactive' },
+            ],
+          },
+        ]}
+      />
+
+      <div className="overflow-hidden rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <DataTablePagination table={table} />
+    </div>
+  )
+}
+```
+</Accordion>
+
+## API Reference
+
+All data table components are exported from `src/components/data-table/index.ts`:
+
+```tsx
+export { DataTablePagination } from './pagination'
+export { DataTableColumnHeader } from './column-header'
+export { DataTableFacetedFilter } from './faceted-filter'
+export { DataTableViewOptions } from './view-options'
+export { DataTableToolbar } from './toolbar'
+export { DataTableBulkActions } from './bulk-actions'
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="UI Components" icon="palette" href="/components/ui-components">
+    Explore all 30+ UI components
+  </Card>
+  
+  <Card title="Forms" icon="file-input" href="/components/forms">
+    Build forms with validation
+  </Card>
+</CardGroup>

@@ -1,0 +1,440 @@
+---
+title: Error Pages
+description: Pre-built error pages for 401, 403, 404, 500, and 503 responses
+---
+
+Shadcn Admin includes professionally designed error pages for common HTTP error codes with consistent styling and user-friendly messaging.
+
+## Overview
+
+All error pages follow a consistent design pattern with large error codes, clear messaging, and navigation actions.
+
+**Location:** `src/features/errors/`  
+**Routes:** `/(errors)/` directory
+
+## Available Error Pages
+
+<CardGroup cols={2}>
+  <Card title="401 Unauthorized" icon="ban">
+    User authentication required
+  </Card>
+  <Card title="403 Forbidden" icon="lock">
+    Access denied due to insufficient permissions
+  </Card>
+  <Card title="404 Not Found" icon="file-circle-question">
+    Requested resource does not exist
+  </Card>
+  <Card title="500 Server Error" icon="circle-exclamation">
+    Internal server error occurred
+  </Card>
+  <Card title="503 Maintenance" icon="screwdriver-wrench">
+    Service temporarily unavailable
+  </Card>
+</CardGroup>
+
+## Error Page Structure
+
+All error pages share a common layout pattern:
+
+```tsx
+<div className='h-svh'>
+  <div className='m-auto flex h-full w-full flex-col items-center justify-center gap-2'>
+    <h1 className='text-[7rem] leading-tight font-bold'>{errorCode}</h1>
+    <span className='font-medium'>{errorTitle}</span>
+    <p className='text-center text-muted-foreground'>
+      {errorMessage}
+    </p>
+    <div className='mt-6 flex gap-4'>
+      <Button variant='outline' onClick={goBack}>Go Back</Button>
+      <Button onClick={goHome}>Back to Home</Button>
+    </div>
+  </div>
+</div>
+```
+
+## 404 - Not Found
+
+Displayed when a requested page or resource doesn't exist.
+
+**Route:** `/404`  
+**File:** `src/features/errors/not-found-error.tsx`
+
+### Implementation
+
+```tsx
+// src/routes/(errors)/404.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { NotFoundError } from '@/features/errors/not-found-error'
+
+export const Route = createFileRoute('/(errors)/404')({\n  component: NotFoundError,
+})
+```
+
+### Component
+
+```tsx
+// src/features/errors/not-found-error.tsx
+import { useNavigate, useRouter } from '@tanstack/react-router'
+import { Button } from '@/components/ui/button'
+
+export function NotFoundError() {
+  const navigate = useNavigate()
+  const { history } = useRouter()
+  
+  return (
+    <div className='h-svh'>
+      <div className='m-auto flex h-full w-full flex-col items-center justify-center gap-2'>
+        <h1 className='text-[7rem] leading-tight font-bold'>404</h1>
+        <span className='font-medium'>Oops! Page Not Found!</span>
+        <p className='text-center text-muted-foreground'>
+          It seems like the page you're looking for <br />
+          does not exist or might have been removed.
+        </p>
+        <div className='mt-6 flex gap-4'>
+          <Button variant='outline' onClick={() => history.go(-1)}>
+            Go Back
+          </Button>
+          <Button onClick={() => navigate({ to: '/' })}>
+            Back to Home
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+### Features
+
+- Large, bold 404 error code
+- Friendly error message
+- "Go Back" button using browser history
+- "Back to Home" button for navigation
+- Full viewport height centering
+
+## 401 - Unauthorized
+
+Shown when authentication is required but not provided.
+
+**Route:** `/401`  
+**File:** `src/features/errors/unauthorized-error.tsx`
+
+### Implementation
+
+```tsx
+// src/routes/(errors)/401.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { UnauthorisedError } from '@/features/errors/unauthorized-error'
+
+export const Route = createFileRoute('/(errors)/401')({\n  component: UnauthorisedError,
+})
+```
+
+### Component
+
+```tsx
+// src/features/errors/unauthorized-error.tsx
+import { useNavigate, useRouter } from '@tanstack/react-router'
+import { Button } from '@/components/ui/button'
+
+export function UnauthorisedError() {
+  const navigate = useNavigate()
+  const { history } = useRouter()
+  
+  return (
+    <div className='h-svh'>
+      <div className='m-auto flex h-full w-full flex-col items-center justify-center gap-2'>
+        <h1 className='text-[7rem] leading-tight font-bold'>401</h1>
+        <span className='font-medium'>Unauthorized Access</span>
+        <p className='text-center text-muted-foreground'>
+          Please log in with the appropriate credentials <br /> 
+          to access this resource.
+        </p>
+        <div className='mt-6 flex gap-4'>
+          <Button variant='outline' onClick={() => history.go(-1)}>
+            Go Back
+          </Button>
+          <Button onClick={() => navigate({ to: '/' })}>
+            Back to Home
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+<Note>
+Consider redirecting to the sign-in page instead of showing this error, passing the original URL as a redirect parameter.
+</Note>
+
+## 403 - Forbidden
+
+Displayed when a user lacks permissions to access a resource.
+
+**Route:** `/403`  
+**File:** `src/features/errors/forbidden.tsx`
+
+### Component
+
+```tsx
+// src/features/errors/forbidden.tsx
+import { useNavigate, useRouter } from '@tanstack/react-router'
+import { Button } from '@/components/ui/button'
+
+export function ForbiddenError() {
+  const navigate = useNavigate()
+  const { history } = useRouter()
+  
+  return (
+    <div className='h-svh'>
+      <div className='m-auto flex h-full w-full flex-col items-center justify-center gap-2'>
+        <h1 className='text-[7rem] leading-tight font-bold'>403</h1>
+        <span className='font-medium'>Access Forbidden</span>
+        <p className='text-center text-muted-foreground'>
+          You don't have necessary permission <br />
+          to view this resource.
+        </p>
+        <div className='mt-6 flex gap-4'>
+          <Button variant='outline' onClick={() => history.go(-1)}>
+            Go Back
+          </Button>
+          <Button onClick={() => navigate({ to: '/' })}>
+            Back to Home
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+### Use Cases
+
+- Role-based access control violations
+- Attempting to access admin-only pages
+- Missing required permissions
+- Expired access tokens
+
+## 500 - Server Error
+
+General server error page for unexpected failures.
+
+**Route:** `/500`  
+**File:** `src/features/errors/general-error.tsx`
+
+### Component
+
+```tsx
+// src/features/errors/general-error.tsx
+import { useNavigate, useRouter } from '@tanstack/react-router'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+
+type GeneralErrorProps = React.HTMLAttributes<HTMLDivElement> & {
+  minimal?: boolean
+}
+
+export function GeneralError({
+  className,
+  minimal = false,
+}: GeneralErrorProps) {
+  const navigate = useNavigate()
+  const { history } = useRouter()
+  
+  return (
+    <div className={cn('h-svh w-full', className)}>
+      <div className='m-auto flex h-full w-full flex-col items-center justify-center gap-2'>
+        {!minimal && (
+          <h1 className='text-[7rem] leading-tight font-bold'>500</h1>
+        )}
+        <span className='font-medium'>Oops! Something went wrong {`:)`}</span>
+        <p className='text-center text-muted-foreground'>
+          We apologize for the inconvenience. <br /> 
+          Please try again later.
+        </p>
+        {!minimal && (
+          <div className='mt-6 flex gap-4'>
+            <Button variant='outline' onClick={() => history.go(-1)}>
+              Go Back
+            </Button>
+            <Button onClick={() => navigate({ to: '/' })}>
+              Back to Home
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+```
+
+### Features
+
+- Optional `minimal` prop to hide error code and buttons
+- Customizable via `className` prop
+- Friendly, apologetic messaging
+
+<Info>
+The 500 error component supports a minimal mode for embedding in error boundaries.
+</Info>
+
+## 503 - Service Unavailable
+
+Maintenance or temporary downtime page.
+
+**Route:** `/503`  
+**File:** `src/features/errors/maintenance-error.tsx`
+
+### Component
+
+```tsx
+// src/features/errors/maintenance-error.tsx
+import { Button } from '@/components/ui/button'
+
+export function MaintenanceError() {
+  return (
+    <div className='h-svh'>
+      <div className='m-auto flex h-full w-full flex-col items-center justify-center gap-2'>
+        <h1 className='text-[7rem] leading-tight font-bold'>503</h1>
+        <span className='font-medium'>Website is under maintenance!</span>
+        <p className='text-center text-muted-foreground'>
+          The site is not available at the moment. <br />
+          We'll be back online shortly.
+        </p>
+        <div className='mt-6 flex gap-4'>
+          <Button variant='outline'>Learn more</Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+### Use Cases
+
+- Scheduled maintenance windows
+- Database migrations
+- System upgrades
+- Temporary service outages
+
+## Dynamic Error Routing
+
+Shadcn Admin also includes a dynamic error route for programmatic error handling:
+
+**File:** `src/routes/_authenticated/errors/$error.tsx`
+
+This allows you to navigate to errors dynamically:
+
+```tsx
+navigate({ to: '/errors/$error', params: { error: '404' } })
+```
+
+## Error Boundaries
+
+Use error pages with React Error Boundaries:
+
+```tsx
+import { GeneralError } from '@/features/errors/general-error'
+
+class ErrorBoundary extends React.Component {
+  state = { hasError: false }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <GeneralError minimal />
+    }
+    return this.props.children
+  }
+}
+```
+
+## Customization
+
+### Styling
+
+Modify the error page appearance:
+
+```tsx
+<h1 className='text-[7rem] leading-tight font-bold text-destructive'>404</h1>
+```
+
+### Custom Actions
+
+Add custom buttons or actions:
+
+```tsx
+<div className='mt-6 flex gap-4'>
+  <Button variant='outline' onClick={() => history.go(-1)}>Go Back</Button>
+  <Button onClick={() => navigate({ to: '/' })}>Back to Home</Button>
+  <Button onClick={handleContactSupport}>Contact Support</Button>
+</div>
+```
+
+### Error Tracking
+
+Integrate error tracking services:
+
+```tsx
+import * as Sentry from '@sentry/react'
+
+export function NotFoundError() {
+  React.useEffect(() => {
+    Sentry.captureMessage('404 Error: Page not found')
+  }, [])
+  
+  // ...
+}
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Clear Messaging" icon="message">
+    Use friendly, non-technical language that explains what happened
+  </Card>
+  <Card title="Navigation Options" icon="arrows-turn-to-dots">
+    Always provide at least two navigation options (go back and home)
+  </Card>
+  <Card title="Consistent Design" icon="paintbrush">
+    Keep error pages styled consistently with your brand
+  </Card>
+  <Card title="Logging" icon="file-lines">
+    Log errors server-side for debugging and monitoring
+  </Card>
+</CardGroup>
+
+## HTTP Status Codes
+
+<Tabs>
+  <Tab title="4xx Client Errors">
+    **401 Unauthorized:** Authentication required  
+    **403 Forbidden:** Insufficient permissions  
+    **404 Not Found:** Resource doesn't exist
+  </Tab>
+  <Tab title="5xx Server Errors">
+    **500 Internal Server Error:** Unexpected server failure  
+    **503 Service Unavailable:** Maintenance or downtime
+  </Tab>
+</Tabs>
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="lock" href="/pages/authentication">
+    Handle 401 errors with sign-in redirect
+  </Card>
+  <Card title="Dashboard" icon="chart-line" href="/pages/dashboard">
+    Default home page for navigation
+  </Card>
+  <Card title="Router Configuration" icon="route" href="/guides/routing">
+    Configure error handling in TanStack Router
+  </Card>
+  <Card title="UI Components" icon="cube" href="/api/components/ui">
+    Button and layout components
+  </Card>
+</CardGroup>

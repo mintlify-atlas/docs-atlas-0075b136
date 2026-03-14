@@ -1,0 +1,316 @@
+---
+title: Dashboard Page
+description: Analytics dashboard with metrics, charts, and data visualization
+---
+
+The dashboard is the main landing page for authenticated users, featuring metrics cards, charts, and data visualization components.
+
+## Overview
+
+The dashboard provides a comprehensive view of key metrics and analytics through an interactive tabbed interface.
+
+**Location:** `src/features/dashboard/index.tsx`  
+**Route:** `/_authenticated/` (root authenticated route)
+
+## Features
+
+<CardGroup cols={2}>
+  <Card title="Metrics Cards" icon="square-poll-vertical">
+    Four key metric cards showing revenue, subscriptions, sales, and active users
+  </Card>
+  <Card title="Charts" icon="chart-line">
+    Interactive charts powered by Recharts for data visualization
+  </Card>
+  <Card title="Tabbed Interface" icon="folder-tree">
+    Overview and Analytics tabs with disabled placeholders for Reports and Notifications
+  </Card>
+  <Card title="Recent Sales" icon="clock">
+    List of recent transactions with user avatars and amounts
+  </Card>
+</CardGroup>
+
+## Implementation
+
+### Route Definition
+
+```tsx
+// src/routes/_authenticated/index.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { Dashboard } from '@/features/dashboard'
+
+export const Route = createFileRoute('/_authenticated/')({\n  component: Dashboard,
+})
+```
+
+### Dashboard Component
+
+The main dashboard component includes header, navigation, and content sections:
+
+```tsx
+// src/features/dashboard/index.tsx
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Header } from '@/components/layout/header'
+import { Main } from '@/components/layout/main'
+import { TopNav } from '@/components/layout/top-nav'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { Search } from '@/components/search'
+import { ThemeSwitch } from '@/components/theme-switch'
+
+export function Dashboard() {
+  return (
+    <>
+      {/* ===== Top Heading ===== */}
+      <Header>
+        <TopNav links={topNav} />
+        <div className='ms-auto flex items-center space-x-4'>
+          <Search />
+          <ThemeSwitch />
+          <ConfigDrawer />
+          <ProfileDropdown />
+        </div>
+      </Header>
+
+      {/* ===== Main ===== */}
+      <Main>
+        <div className='mb-2 flex items-center justify-between space-y-2'>
+          <h1 className='text-2xl font-bold tracking-tight'>Dashboard</h1>
+          <div className='flex items-center space-x-2'>
+            <Button>Download</Button>
+          </div>
+        </div>
+        {/* ... tabs and content ... */}
+      </Main>
+    </>
+  )
+}
+```
+
+## Layout Structure
+
+### Header Section
+
+The header includes top navigation and utility components:
+
+```tsx
+<Header>
+  <TopNav links={topNav} />
+  <div className='ms-auto flex items-center space-x-4'>
+    <Search />
+    <ThemeSwitch />
+    <ConfigDrawer />
+    <ProfileDropdown />
+  </div>
+</Header>
+```
+
+**Top Navigation Links:**
+
+```tsx
+const topNav = [
+  {
+    title: 'Overview',
+    href: 'dashboard/overview',
+    isActive: true,
+    disabled: false,
+  },
+  {
+    title: 'Customers',
+    href: 'dashboard/customers',
+    isActive: false,
+    disabled: true,
+  },
+  {
+    title: 'Products',
+    href: 'dashboard/products',
+    isActive: false,
+    disabled: true,
+  },
+  {
+    title: 'Settings',
+    href: 'dashboard/settings',
+    isActive: false,
+    disabled: true,
+  },
+]
+```
+
+### Metrics Cards
+
+Four primary metrics are displayed in a responsive grid:
+
+```tsx
+<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+  <Card>
+    <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+      <CardTitle className='text-sm font-medium'>Total Revenue</CardTitle>
+      {/* SVG icon */}
+    </CardHeader>
+    <CardContent>
+      <div className='text-2xl font-bold'>$45,231.89</div>
+      <p className='text-xs text-muted-foreground'>
+        +20.1% from last month
+      </p>
+    </CardContent>
+  </Card>
+  {/* Additional cards: Subscriptions, Sales, Active Now */}
+</div>
+```
+
+<Note>
+The metrics cards use a responsive grid that stacks on mobile (1 column), shows 2 columns on small screens, and 4 columns on large screens.
+</Note>
+
+### Tabs Interface
+
+```tsx
+<Tabs orientation='vertical' defaultValue='overview' className='space-y-4'>
+  <div className='w-full overflow-x-auto pb-2'>
+    <TabsList>
+      <TabsTrigger value='overview'>Overview</TabsTrigger>
+      <TabsTrigger value='analytics'>Analytics</TabsTrigger>
+      <TabsTrigger value='reports' disabled>Reports</TabsTrigger>
+      <TabsTrigger value='notifications' disabled>Notifications</TabsTrigger>
+    </TabsList>
+  </div>
+  <TabsContent value='overview' className='space-y-4'>
+    {/* Overview content */}
+  </TabsContent>
+  <TabsContent value='analytics' className='space-y-4'>
+    <Analytics />
+  </TabsContent>
+</Tabs>
+```
+
+### Overview Tab Content
+
+The overview tab displays a chart and recent sales side-by-side:
+
+```tsx
+<div className='grid grid-cols-1 gap-4 lg:grid-cols-7'>
+  <Card className='col-span-1 lg:col-span-4'>
+    <CardHeader>
+      <CardTitle>Overview</CardTitle>
+    </CardHeader>
+    <CardContent className='ps-2'>
+      <Overview />
+    </CardContent>
+  </Card>
+  <Card className='col-span-1 lg:col-span-3'>
+    <CardHeader>
+      <CardTitle>Recent Sales</CardTitle>
+      <CardDescription>You made 265 sales this month.</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <RecentSales />
+    </CardContent>
+  </Card>
+</div>
+```
+
+## Dashboard Components
+
+The dashboard uses specialized sub-components located in `src/features/dashboard/components/`:
+
+<Tabs>
+  <Tab title="Overview Chart">
+    **File:** `components/overview.tsx`
+    
+    Bar chart component built with Recharts showing monthly data visualization.
+  </Tab>
+  <Tab title="Analytics">
+    **File:** `components/analytics.tsx`
+    
+    Extended analytics view with additional charts and metrics.
+  </Tab>
+  <Tab title="Recent Sales">
+    **File:** `components/recent-sales.tsx`
+    
+    List of recent transactions with user information and amounts.
+  </Tab>
+</Tabs>
+
+## Customization
+
+### Adding New Metrics
+
+To add a new metric card:
+
+1. Add it to the metrics grid in the dashboard component
+2. Use the same `Card` structure with `CardHeader` and `CardContent`
+3. Include an icon SVG and metric values
+
+```tsx
+<Card>
+  <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+    <CardTitle className='text-sm font-medium'>Your Metric</CardTitle>
+    {/* Add your icon */}
+  </CardHeader>
+  <CardContent>
+    <div className='text-2xl font-bold'>Value</div>
+    <p className='text-xs text-muted-foreground'>Description</p>
+  </CardContent>
+</Card>
+```
+
+### Adding New Tabs
+
+To enable disabled tabs or add new ones:
+
+1. Add/update the `TabsTrigger` in the tabs list
+2. Create the corresponding `TabsContent` component
+3. Build your custom content component
+
+```tsx
+<TabsTrigger value='reports'>Reports</TabsTrigger>
+
+<TabsContent value='reports' className='space-y-4'>
+  <YourReportsComponent />
+</TabsContent>
+```
+
+### Modifying Top Navigation
+
+Update the `topNav` array to change navigation links:
+
+```tsx
+const topNav = [
+  {
+    title: 'Your Link',
+    href: 'path/to/page',
+    isActive: false,
+    disabled: false,
+  },
+  // ...
+]
+```
+
+## Responsive Design
+
+The dashboard is fully responsive:
+
+- **Mobile:** Single column layout, stacked cards
+- **Tablet:** 2 column grid for metrics, stacked content
+- **Desktop:** 4 column metrics grid, side-by-side charts
+
+<Info>
+The layout uses Tailwind CSS responsive utilities (`sm:`, `lg:`) for breakpoint-based styling.
+</Info>
+
+## Related Components
+
+<CardGroup cols={2}>
+  <Card title="Layout Components" icon="layer-group" href="/api/components/layout">
+    Header, Main, and TopNav components
+  </Card>
+  <Card title="UI Components" icon="cube" href="/api/components/ui">
+    Card, Tabs, and Button components
+  </Card>
+  <Card title="Settings Page" icon="gear" href="/pages/settings">
+    User settings and preferences
+  </Card>
+  <Card title="Authentication" icon="lock" href="/pages/authentication">
+    Login and registration pages
+  </Card>
+</CardGroup>

@@ -1,0 +1,379 @@
+---
+title: RTL Support
+description: Implement right-to-left (RTL) language support in Shadcn Admin
+---
+
+Shadcn Admin includes built-in support for right-to-left (RTL) languages like Arabic, Hebrew, and Persian through the DirectionProvider context.
+
+## Direction Provider
+
+The `DirectionProvider` manages text direction and integrates with Radix UI components.
+
+### Setup
+
+The DirectionProvider is already configured in the main entry point:
+
+```tsx src/main.tsx
+import { DirectionProvider } from './context/direction-provider'
+
+root.render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <FontProvider>
+          <DirectionProvider>
+            <RouterProvider router={router} />
+          </DirectionProvider>
+        </FontProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </StrictMode>
+)
+```
+
+## Using the Direction Hook
+
+Access and control text direction using the `useDirection` hook:
+
+```tsx
+import { useDirection } from '@/context/direction-provider'
+
+function DirectionToggle() {
+  const { dir, setDir } = useDirection()
+  
+  return (
+    <button onClick={() => setDir(dir === 'ltr' ? 'rtl' : 'ltr')}>
+      Current: {dir}
+    </button>
+  )
+}
+```
+
+## Direction API
+
+The `useDirection` hook provides:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `dir` | `'ltr' \| 'rtl'` | Current text direction |
+| `setDir` | `(dir: Direction) => void` | Update the direction |
+| `resetDir` | `() => void` | Reset to default direction |
+| `defaultDir` | `Direction` | Default direction (`'ltr'`) |
+
+## How It Works
+
+<Steps>
+
+<Step title="Direction Storage">
+The selected direction is persisted in cookies:
+
+```tsx src/context/direction-provider.tsx
+const DIRECTION_COOKIE_NAME = 'dir'
+const DIRECTION_COOKIE_MAX_AGE = 60 * 60 * 24 * 365 // 1 year
+
+const setDir = (dir: Direction) => {
+  _setDir(dir)
+  setCookie(DIRECTION_COOKIE_NAME, dir, DIRECTION_COOKIE_MAX_AGE)
+}
+```
+</Step>
+
+<Step title="HTML Attribute Update">
+The direction is applied to the document root element:
+
+```tsx src/context/direction-provider.tsx
+useEffect(() => {
+  const htmlElement = document.documentElement
+  htmlElement.setAttribute('dir', dir)
+}, [dir])
+```
+</Step>
+
+<Step title="Radix UI Integration">
+Radix UI components automatically adapt to the direction:
+
+```tsx src/context/direction-provider.tsx
+import { DirectionProvider as RdxDirProvider } from '@radix-ui/react-direction'
+
+export function DirectionProvider({ children }) {
+  // ...
+  return (
+    <DirectionContext value={{ /* ... */ }}>
+      <RdxDirProvider dir={dir}>
+        {children}
+      </RdxDirProvider>
+    </DirectionContext>
+  )
+}
+```
+</Step>
+
+</Steps>
+
+## RTL-Aware Components
+
+Several components include RTL-specific styling:
+
+### Switch Component
+
+The switch thumb animates in the correct direction:
+
+```tsx src/components/ui/switch.tsx
+<SwitchPrimitive.Thumb
+  className={
+    'transition-transform ' +
+    'data-[state=checked]:translate-x-[calc(100%-2px)] ' +
+    'data-[state=unchecked]:translate-x-0 ' +
+    'rtl:data-[state=checked]:-translate-x-[calc(100%-2px)]'
+  }
+/>
+```
+
+### Sidebar Component
+
+Sidebar handles RTL cursor styles:
+
+```tsx src/components/ui/sidebar.tsx
+className={
+  'rtl:translate-x-1/2 ' +
+  'rtl:in-data-[side=left]:cursor-e-resize ' +
+  'rtl:in-data-[side=right]:cursor-w-resize'
+}
+```
+
+### Calendar Component
+
+Navigation buttons rotate for RTL:
+
+```tsx src/components/ui/calendar.tsx
+String.raw`rtl:**:[.rdp-button_next>svg]:rotate-180`
+String.raw`rtl:**:[.rdp-button_previous>svg]:rotate-180`
+```
+
+### Chevron Icons
+
+Chevrons rotate automatically in RTL mode:
+
+```tsx src/components/layout/nav-group.tsx
+<ChevronRight className={
+  'ms-auto transition-transform ' +
+  'group-data-[state=open]/collapsible:rotate-90 ' +
+  'rtl:rotate-180'
+} />
+```
+
+### Directional Icons
+
+Arrow icons flip for RTL:
+
+```tsx
+<ArrowLeft className="rtl:rotate-180" />
+```
+
+## Custom RTL Icon Component
+
+Shadcn Admin includes a custom icon component that adapts to direction:
+
+```tsx src/assets/custom/icon-dir.tsx
+import { type Direction } from '@/context/direction-provider'
+import { cn } from '@/lib/utils'
+
+type IconDirProps = SVGProps<SVGSVGElement> & {
+  dir: Direction
+}
+
+export function IconDir({ dir, className, ...props }: IconDirProps) {
+  return (
+    <svg
+      className={cn(dir === 'rtl' && 'rotate-y-180', className)}
+      {...props}
+    >
+      {/* SVG paths */}
+    </svg>
+  )
+}
+```
+
+Usage:
+```tsx
+<IconDir dir="rtl" />
+<IconDir dir="ltr" />
+```
+
+## Tailwind RTL Utilities
+
+Use Tailwind's RTL variant for conditional styling:
+
+```tsx
+<div className="ml-4 rtl:mr-4 rtl:ml-0">
+  Content with RTL-aware margin
+</div>
+```
+
+### Logical Properties
+
+Prefer logical properties over directional ones:
+
+<CodeGroup>
+
+```tsx Good - Uses Logical Properties
+<div className="ms-4 me-2"> {/* margin-inline-start, margin-inline-end */}
+  Content
+</div>
+```
+
+```tsx Avoid - Uses Directional Properties  
+<div className="ml-4 mr-2 rtl:mr-4 rtl:ml-2">
+  Requires RTL overrides
+</div>
+```
+
+</CodeGroup>
+
+### Logical Property Classes
+
+| Class | Property | RTL-Safe |
+|-------|----------|----------|
+| `ms-4` | `margin-inline-start` | ✅ |
+| `me-4` | `margin-inline-end` | ✅ |
+| `ps-4` | `padding-inline-start` | ✅ |
+| `pe-4` | `padding-inline-end` | ✅ |
+| `start-0` | `inset-inline-start` | ✅ |
+| `end-0` | `inset-inline-end` | ✅ |
+| `ml-4` | `margin-left` | ❌ Needs RTL variant |
+| `mr-4` | `margin-right` | ❌ Needs RTL variant |
+
+## Configuration UI
+
+The ConfigDrawer includes a direction selector:
+
+```tsx src/components/config-drawer.tsx
+function DirConfig() {
+  const { defaultDir, dir, setDir } = useDirection()
+  
+  return (
+    <div>
+      <SectionTitle
+        title='Direction'
+        showReset={defaultDir !== dir}
+        onReset={() => setDir(defaultDir)}
+      />
+      <Radio
+        value={dir}
+        onValueChange={setDir}
+        aria-label='Select site direction'
+      >
+        <Item value="ltr" label="Left to Right">
+          <IconDir dir='ltr' />
+        </Item>
+        <Item value="rtl" label="Right to Left">
+          <IconDir dir='rtl' />
+        </Item>
+      </Radio>
+    </div>
+  )
+}
+```
+
+## Building RTL-Compatible Components
+
+When creating custom components:
+
+<Steps>
+
+<Step title="Use Logical Properties">
+Always use logical properties instead of directional ones:
+
+```tsx
+// Good
+<div className="ms-4 ps-2 start-0" />
+
+// Avoid
+<div className="ml-4 pl-2 left-0" />
+```
+</Step>
+
+<Step title="Add RTL Variants for Transforms">
+Use `rtl:` variant for transforms and rotations:
+
+```tsx
+<ChevronRight className="rtl:rotate-180" />
+<div className="translate-x-4 rtl:-translate-x-4" />
+```
+</Step>
+
+<Step title="Test Both Directions">
+Always test your components in both LTR and RTL modes using the configuration drawer.
+</Step>
+
+<Step title="Use Direction Context">
+For complex logic, access the direction context:
+
+```tsx
+import { useDirection } from '@/context/direction-provider'
+
+function Component() {
+  const { dir } = useDirection()
+  
+  return (
+    <div>
+      {dir === 'rtl' ? <RtlContent /> : <LtrContent />}
+    </div>
+  )
+}
+```
+</Step>
+
+</Steps>
+
+## Common RTL Patterns
+
+### Margins and Padding
+
+```tsx
+// Logical properties (recommended)
+<div className="ms-4 me-2 ps-3 pe-1" />
+
+// With RTL variant (when logical properties aren't suitable)
+<div className="ml-4 rtl:mr-4 rtl:ml-0" />
+```
+
+### Positioning
+
+```tsx
+// Logical positioning
+<div className="absolute start-0 end-auto" />
+
+// With RTL variant
+<div className="absolute left-0 rtl:right-0 rtl:left-auto" />
+```
+
+### Icons and Arrows
+
+```tsx
+// Directional icons
+<ArrowRight className="rtl:rotate-180" />
+<ChevronLeft className="rtl:scale-x-[-1]" />
+
+// Non-directional icons (no changes needed)
+<Search />
+<Settings />
+```
+
+### Flexbox
+
+```tsx
+// Flex direction automatically reverses with dir="rtl"
+<div className="flex gap-4">
+  <div>First</div>  {/* Appears on right in RTL */}
+  <div>Second</div> {/* Appears on left in RTL */}
+</div>
+```
+
+<Note>
+Most Flexbox and Grid layouts automatically adapt to RTL when the `dir` attribute is set on the HTML element. Only transforms, absolute positioning, and directional icons need explicit RTL variants.
+</Note>
+
+<Warning>
+Be careful with animations and transforms. They may need RTL-specific adjustments using the `rtl:` variant to maintain the correct visual direction.
+</Warning>
