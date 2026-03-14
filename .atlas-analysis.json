@@ -1,0 +1,114 @@
+{
+  "projectType": "frontend",
+  "projectName": "Shadcn Admin",
+  "projectDescription": "Admin dashboard UI built with Shadcn and Vite, featuring responsive design, accessibility, and RTL support.",
+  "theme": "palm",
+  "primaryColor": "#040404",
+  "lightColor": null,
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "components/overview",
+              "components/ui-components",
+              "components/data-table",
+              "components/sidebar",
+              "components/forms"
+            ]
+          },
+          {
+            "group": "Pages",
+            "pages": [
+              "pages/overview",
+              "pages/dashboard",
+              "pages/authentication",
+              "pages/error-pages",
+              "pages/settings"
+            ]
+          },
+          {
+            "group": "Customization",
+            "pages": [
+              "customization/theming",
+              "customization/styling",
+              "customization/rtl-support",
+              "customization/layout"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/routing",
+              "guides/state-management",
+              "guides/authentication",
+              "guides/data-fetching"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core",
+            "pages": [
+              "api/hooks",
+              "api/utilities",
+              "api/configuration"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "api/components/layout",
+              "api/components/ui",
+              "api/components/data-table"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "30+ customized Shadcn UI components",
+    "Pre-built page templates for dashboard, tasks, users, and more",
+    "Built-in sidebar with team switcher and navigation",
+    "Light/dark mode with theme customization",
+    "RTL (Right-to-Left) language support",
+    "Responsive design with mobile-first approach",
+    "Data tables with sorting, filtering, and pagination",
+    "Form handling with React Hook Form and Zod validation",
+    "TanStack Router for type-safe routing",
+    "Authentication pages with Clerk integration support"
+  ],
+  "publicApiSurface": [
+    "AppSidebar",
+    "NavGroup",
+    "NavUser",
+    "TeamSwitcher",
+    "DataTable",
+    "DataTablePagination",
+    "DataTableToolbar",
+    "ThemeProvider",
+    "LayoutProvider",
+    "useLayout",
+    "useMobile",
+    "useDialogState",
+    "useTableUrlState",
+    "cn (utility)",
+    "sidebarData"
+  ]
+}
